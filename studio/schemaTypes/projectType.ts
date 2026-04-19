@@ -1,5 +1,5 @@
 import { defineType, defineField } from 'sanity'
-import { CategoryInput } from '../components/CategoryInput'
+
 
 export const projectType = defineType({
   name: 'project',
@@ -30,9 +30,6 @@ export const projectType = defineType({
       name: 'category',
       title: 'Category',
       type: 'string',
-      components: {
-        input: CategoryInput,
-      },
       validation: Rule => Rule.required(),
     }),
     defineField({
