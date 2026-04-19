@@ -423,7 +423,6 @@ function App() {
                     <p className="text-dark-slate text-base sm:text-lg font-bold leading-tight mb-2">{projectPreview?.title}</p>
                     <div className="flex items-center justify-center gap-1.5 text-primary-blue bg-blue-50/50 py-1.5 px-3 rounded-full w-fit mx-auto border border-blue-100/50">
                       <User size={14} strokeWidth={2.5} />
-                      <span className="text-xs font-bold uppercase tracking-wide">{projectPreview?.clientName}</span>
                     </div>
                   </div>
                   <p className="text-gray-400 text-xs font-medium leading-relaxed">
