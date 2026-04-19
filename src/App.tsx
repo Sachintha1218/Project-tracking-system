@@ -12,7 +12,7 @@ const PROJECT_FULL_QUERY = `*[_type == "project" && projectId.current == $id][0]
   "_id": _id,
   "id": projectId.current,
   title,
-  "category": category->title,
+  category,
   status,
   progress,
   password,

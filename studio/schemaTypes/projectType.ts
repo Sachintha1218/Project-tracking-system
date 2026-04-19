@@ -1,4 +1,5 @@
 import { defineType, defineField } from 'sanity'
+import { CategoryInput } from '../components/CategoryInput'
 
 export const projectType = defineType({
   name: 'project',
@@ -22,11 +23,9 @@ export const projectType = defineType({
     defineField({
       name: 'category',
       title: 'Category',
-      description: 'Select an existing category or type a new name and click "Add new" to save it for future use.',
-      type: 'reference',
-      to: [{ type: 'category' }],
-      options: {
-        disableNew: false,
+      type: 'string',
+      components: {
+        input: CategoryInput,
       },
       validation: Rule => Rule.required(),
     }),
