@@ -22,10 +22,9 @@ export const projectType = defineType({
     defineField({
       name: 'category',
       title: 'Category',
-      type: 'string',
-      options: {
-        list: ['Web Design', 'Mobile App', 'Branding', 'SEO', 'E-Commerce', 'Other'],
-      },
+      type: 'reference',
+      to: [{ type: 'category' }],
+      validation: Rule => Rule.required(),
     }),
     defineField({
       name: 'status',

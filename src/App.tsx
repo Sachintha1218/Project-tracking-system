@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { Search, Loader2, Compass, Lock, Eye, EyeOff, ArrowLeft, ShieldCheck, Activity, Shield, Folder } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dashboard, type ProjectData } from './components/Dashboard';
@@ -12,7 +12,7 @@ const PROJECT_FULL_QUERY = `*[_type == "project" && projectId.current == $id][0]
   "_id": _id,
   "id": projectId.current,
   title,
-  category,
+  "category": category->title,
   status,
   progress,
   password,
@@ -43,6 +43,38 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [projectData, setProjectData] = useState<ProjectData | null>(null);
+
+  // Persistence: Check for saved credentials on mount
+  useEffect(() => {
+    const savedId = localStorage.getItem('prj_auth_id');
+    const savedPw = localStorage.getItem('prj_auth_pw');
+
+    if (savedId && savedPw) {
+      setProjectId(savedId);
+      setPassword(savedPw);
+      performLogin(savedId, savedPw);
+    }
+  }, []);
+
+  const performLogin = async (id: string, pw: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const project = await client.fetch(PROJECT_FULL_QUERY, { id: id.trim() });
+      if (project && project.password === pw) {
+        const { password: _pw, ...safeProject } = project;
+        setProjectData(safeProject as ProjectData);
+        setStep('dashboard');
+      } else {
+        // If saved credentials are no longer valid, clear them
+        handleReset();
+      }
+    } catch (err) {
+      console.error('Auto-login failed:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Step 1: Check that the project ID exists
   const handleIdSubmit = async (e: FormEvent) => {
@@ -77,6 +109,11 @@ function App() {
       const project = await client.fetch(PROJECT_FULL_QUERY, { id: projectId.trim() });
       if (!project) throw new Error('Project not found.');
       if (project.password !== password) throw new Error('Incorrect password. Please try again.');
+      
+      // Save credentials for persistence
+      localStorage.setItem('prj_auth_id', projectId.trim());
+      localStorage.setItem('prj_auth_pw', password);
+
       const { password: _pw, ...safeProject } = project;
       setProjectData(safeProject as ProjectData);
       setStep('dashboard');
@@ -88,6 +125,8 @@ function App() {
   };
 
   const handleReset = () => {
+    localStorage.removeItem('prj_auth_id');
+    localStorage.removeItem('prj_auth_pw');
     setProjectData(null);
     setProjectId('');
     setPassword('');
