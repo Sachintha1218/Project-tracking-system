@@ -1,0 +1,22 @@
+{
+  "name": "project-tracking-studio",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "sanity dev",
+    "build": "sanity build",
+    "deploy": "sanity deploy",
+    "deploy-graphql": "sanity graphql deploy"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sanity": "^3",
+    "styled-components": "^6.4.0"
+  },
+  "devDependencies": {
+    "@sanity/eslint-config-studio": "^4",
+    "typescript": "^5"
+  }
+}

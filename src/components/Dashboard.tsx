@@ -4,6 +4,7 @@ import { Timeline, type Milestone } from './Timeline';
 import { FolderGit2, CheckCircle, Activity, Box } from 'lucide-react';
 
 export interface ProjectData {
+  _id: string;
   id: string;
   title: string;
   category: string;
@@ -25,7 +26,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
       <div className="absolute top-[60%] left-[20%] w-[250px] h-[250px] rounded-full bg-teal-100/30 blur-[70px] opacity-50 pointer-events-none -z-10"></div>
 
       {/* Header Section */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -5, scale: 1.01 }}
@@ -78,7 +79,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
           <span className="text-2xl sm:text-3xl font-black text-primary-blue">{data.progress}%</span>
         </div>
         <div className="relative w-full h-4 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-          <motion.div 
+          <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${data.progress}%` }}
             transition={{ duration: 1.5, ease: "easeOut" }}
@@ -97,7 +98,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
         className="relative z-10"
       >
         <h2 className="text-xl sm:text-2xl font-bold text-dark-slate mb-6 sm:mb-8 px-2 text-center md:text-left">Project Timeline</h2>
-        <Timeline milestones={data.milestones} />
+        <Timeline milestones={data.milestones} projectDocId={data._id} />
       </motion.div>
     </div>
   );

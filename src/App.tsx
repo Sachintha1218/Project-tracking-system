@@ -2,8 +2,38 @@ import { useState, FormEvent } from 'react';
 import { Search, Loader2, Compass, Lock, Eye, EyeOff, ArrowLeft, ShieldCheck, Activity, Shield, Folder } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dashboard, type ProjectData } from './components/Dashboard';
+import { client } from './lib/sanity';
 
 type Step = 'lookup' | 'password' | 'dashboard';
+
+const PROJECT_LOOKUP_QUERY = `*[_type == "project" && projectId.current == $id][0]{ _id }`;
+
+const PROJECT_FULL_QUERY = `*[_type == "project" && projectId.current == $id][0]{
+  "_id": _id,
+  "id": projectId.current,
+  title,
+  category,
+  status,
+  progress,
+  password,
+  "milestones": milestones[]{
+    "id": _key,
+    "_key": _key,
+    title,
+    status,
+    startDate,
+    endDate,
+    clientComment,
+    "materials": materials[]{
+      "id": _key,
+      "_key": _key,
+      fileName,
+      uploadedBy,
+      "fileUrl": file.asset->url,
+      "assetId": file.asset->_id
+    }
+  }
+}`;
 
 function App() {
   const [step, setStep] = useState<Step>('lookup');
@@ -24,18 +54,8 @@ function App() {
     setLoading(true);
     setError('');
     try {
-      let res: Response;
-      try {
-        res = await fetch(`http://localhost:5001/api/project/${encodeURIComponent(projectId.trim())}`);
-      } catch {
-        throw new Error('Cannot reach server. Please make sure the app is running.');
-      }
-      const text = await res.text();
-      let data: { message?: string } = {};
-      try { data = JSON.parse(text); } catch {
-        throw new Error('Server returned an unexpected response. Please restart the server.');
-      }
-      if (!res.ok) throw new Error(data.message || 'Project not found. Please check your Project ID.');
+      const result = await client.fetch(PROJECT_LOOKUP_QUERY, { id: projectId.trim() });
+      if (!result) throw new Error('Project not found. Please check your Project ID.');
       setStep('password');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
@@ -44,7 +64,7 @@ function App() {
     }
   };
 
-  // Step 2: Verify password and fetch project data
+  // Step 2: Verify password and fetch full project data
   const handlePasswordSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!password.trim()) {
@@ -54,23 +74,11 @@ function App() {
     setLoading(true);
     setError('');
     try {
-      let res: Response;
-      try {
-        res = await fetch('http://localhost:5001/api/project/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ projectId: projectId.trim(), password }),
-        });
-      } catch {
-        throw new Error('Cannot reach server. Please make sure the app is running.');
-      }
-      const text = await res.text();
-      let data: { message?: string } & ProjectData = {} as { message?: string } & ProjectData;
-      try { data = JSON.parse(text); } catch {
-        throw new Error('Server returned an unexpected response. Please restart the server.');
-      }
-      if (!res.ok) throw new Error(data.message || 'Incorrect password. Please try again.');
-      setProjectData(data);
+      const project = await client.fetch(PROJECT_FULL_QUERY, { id: projectId.trim() });
+      if (!project) throw new Error('Project not found.');
+      if (project.password !== password) throw new Error('Incorrect password. Please try again.');
+      const { password: _pw, ...safeProject } = project;
+      setProjectData(safeProject as ProjectData);
       setStep('dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
@@ -98,28 +106,28 @@ function App() {
   return (
     <div className="min-h-screen relative overflow-hidden bg-white selection:bg-primary-blue selection:text-white">
       {/* ── Animated Background ── */}
-      
+
       {/* Animated Scrolling Dot Grid */}
-      <motion.div 
+      <motion.div
         animate={{ backgroundPosition: ['0px 0px', '32px 32px'] }}
         transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
-        className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" 
+        className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none"
         style={{ backgroundImage: 'radial-gradient(#4A90E2 2px, transparent 2px)', backgroundSize: '32px 32px' }}
       />
-      
+
       {/* Dynamic Flowing Glowing Orbs / Gradient Mesh */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
-        <motion.div 
+        <motion.div
           animate={{ x: ['-20%', '20%', '-20%'], y: ['-20%', '10%', '-20%'], scale: [1, 1.2, 1] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-0 left-0 w-[300px] h-[300px] sm:w-[800px] sm:h-[800px] rounded-full bg-blue-300/20 blur-[80px] sm:blur-[150px] -z-10"
         />
-        <motion.div 
+        <motion.div
           animate={{ x: ['20%', '-20%', '20%'], y: ['20%', '-10%', '20%'], scale: [1, 1.3, 1] }}
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
           className="absolute bottom-0 right-0 w-[250px] h-[250px] sm:w-[700px] sm:h-[700px] rounded-full bg-purple-300/20 blur-[80px] sm:blur-[150px] -z-10"
         />
-        <motion.div 
+        <motion.div
           animate={{ x: ['10%', '-30%', '10%'], y: ['-10%', '30%', '-10%'], scale: [1.2, 1, 1.2] }}
           transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-1/3 left-0 sm:left-1/4 w-[200px] h-[200px] sm:w-[500px] sm:h-[500px] rounded-full bg-teal-300/20 blur-[70px] sm:blur-[120px] -z-10"
@@ -127,22 +135,22 @@ function App() {
       </div>
 
       {/* Floating SVG Geometric Shapes (Responsive Mobile/Desktop) */}
-      <motion.div 
+      <motion.div
         animate={{ y: [0, -40, 0], rotate: [0, 90, 0] }}
         transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-[8%] sm:top-[18%] left-[2%] sm:left-[12%] w-10 h-10 sm:w-16 sm:h-16 border-2 sm:border-4 border-blue-200/50 rounded-xl sm:rounded-3xl pointer-events-none -z-10 backdrop-blur-sm bg-white/5 opacity-60 sm:opacity-100"
       />
-      <motion.div 
+      <motion.div
         animate={{ y: [0, 50, 0], x: [0, 30, 0], scale: [1, 0.9, 1] }}
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         className="absolute top-[50%] sm:top-[65%] right-[5%] sm:right-[10%] w-14 h-14 sm:w-24 sm:h-24 border-2 sm:border-4 border-purple-200/40 rounded-full pointer-events-none -z-10 backdrop-blur-sm bg-white/5 opacity-50 sm:opacity-100"
       />
-      <motion.div 
+      <motion.div
         animate={{ rotate: [45, -45, 45], scale: [1, 1.3, 1] }}
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 5 }}
         className="absolute bottom-[10%] sm:bottom-[25%] left-[5%] sm:left-[8%] w-8 h-8 sm:w-12 sm:h-12 border-2 sm:border-[3px] border-teal-200/60 pointer-events-none -z-10 backdrop-blur-sm bg-white/5 opacity-50 sm:opacity-100"
       />
-      <motion.div 
+      <motion.div
         animate={{ y: [0, -60, 0], rotate: [0, 180, 360] }}
         transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
         className="absolute top-[20%] sm:top-[25%] right-[5%] sm:right-[25%] opacity-20 sm:opacity-30 pointer-events-none -z-10 transform scale-50 sm:scale-100"
@@ -188,8 +196,7 @@ function App() {
               className="w-full max-w-xl mx-auto mt-10 sm:mt-20 relative z-10"
             >
               {/* ── Creative Hero Graphics ── */}
-              {/* Floating Gradient Sphere */}
-              <motion.div 
+              <motion.div
                 animate={{ y: [0, -15, 0], x: [0, 10, 0] }}
                 transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute -top-10 -left-6 sm:-top-20 sm:-left-32 w-24 h-24 sm:w-48 sm:h-48 -z-10 pointer-events-none opacity-40 sm:opacity-80"
@@ -208,8 +215,7 @@ function App() {
                 </svg>
               </motion.div>
 
-              {/* Floating Twisted Capsule */}
-              <motion.div 
+              <motion.div
                 animate={{ y: [0, 20, 0], rotate: [-15, 5, -15] }}
                 transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute top-0 -right-8 sm:top-10 sm:-right-40 w-20 h-20 sm:w-44 sm:h-44 -z-10 pointer-events-none opacity-40 sm:opacity-70"
@@ -228,7 +234,6 @@ function App() {
                 </svg>
               </motion.div>
 
-              {/* Sparkles / Stars */}
               <motion.div animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-2 right-4 sm:-top-6 sm:right-10 text-primary-blue pointer-events-none w-4 h-4 sm:w-6 sm:h-6 opacity-60 sm:opacity-100">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="currentColor"/></svg>
               </motion.div>
@@ -313,14 +318,8 @@ function App() {
                 )}
               </form>
 
-              <div className="mt-8 sm:mt-12 text-center text-sm text-gray-400 font-medium">
-                Try:{' '}
-                <button type="button" onClick={() => setProjectId('PRJ-001')} className="text-primary-blue hover:underline">PRJ-001</button>,{' '}
-                <button type="button" onClick={() => setProjectId('PRJ-002')} className="text-primary-blue hover:underline">PRJ-002</button>
-              </div>
-
               {/* Decorative Features / Stats for the bottom area */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
@@ -333,7 +332,7 @@ function App() {
                   <h3 className="text-sm font-bold text-dark-slate mb-1.5">Real-time Tracking</h3>
                   <p className="text-xs text-gray-500 leading-relaxed font-medium">Monitor your project's progress as it happens.</p>
                 </div>
-                
+
                 <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white shadow-2xl shadow-gray-200/40 flex flex-col items-center text-center group hover:-translate-y-2 hover:bg-white/80 transition-all duration-300">
                   <div className="w-12 h-12 rounded-2xl bg-purple-100/50 text-purple-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                     <Shield size={20} strokeWidth={2} />
@@ -363,9 +362,7 @@ function App() {
               transition={{ duration: 0.35 }}
               className="w-full max-w-md mx-auto mt-10 sm:mt-20"
             >
-              {/* Card */}
               <div className="bg-white rounded-3xl shadow-2xl shadow-gray-200/60 border border-gray-100 p-8 sm:p-10">
-                {/* Icon */}
                 <div className="flex justify-center mb-6">
                   <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-inner">
                     <Lock className="w-7 h-7 text-primary-blue" strokeWidth={1.8} />
@@ -382,7 +379,6 @@ function App() {
                 </div>
 
                 <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                  {/* Password input */}
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -403,7 +399,6 @@ function App() {
                     </button>
                   </div>
 
-                  {/* Error */}
                   <AnimatePresence>
                     {error && (
                       <motion.p
@@ -418,7 +413,6 @@ function App() {
                     )}
                   </AnimatePresence>
 
-                  {/* Submit */}
                   <button
                     type="submit"
                     disabled={loading}
@@ -432,7 +426,6 @@ function App() {
                   </button>
                 </form>
 
-                {/* Back link */}
                 <button
                   type="button"
                   onClick={handleBackToId}
@@ -453,7 +446,7 @@ function App() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <Dashboard data={projectData} />
+              <Dashboard data={projectData!} />
             </motion.div>
           )}
 

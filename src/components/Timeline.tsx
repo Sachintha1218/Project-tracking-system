@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { CheckCircle2, Circle, Clock, MessageSquare, Send, Loader2, AlertCircle, UploadCloud, File as FileIcon, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { client } from '../lib/sanity';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -10,14 +11,16 @@ function cn(...inputs: ClassValue[]) {
 
 export interface Material {
   id: string;
+  _key: string;
   fileName: string;
   fileUrl: string;
   uploadedBy: string;
-  createdAt: string;
+  assetId?: string;
 }
 
 export interface Milestone {
-  id: number;
+  id: string;
+  _key: string;
   title: string;
   status: 'Done' | 'Current' | 'Pending' | 'In Revision';
   startDate: string;
@@ -28,9 +31,32 @@ export interface Milestone {
 
 interface TimelineProps {
   milestones: Milestone[];
+  projectDocId: string;
 }
 
-const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number }> = ({ initialMilestone, index }) => {
+interface SanityMilestone {
+  _key: string;
+  title: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  clientComment?: string;
+  materials?: SanityMaterial[];
+}
+
+interface SanityMaterial {
+  _key: string;
+  _type: string;
+  fileName: string;
+  uploadedBy: string;
+  file: { _type: string; asset: { _type: string; _ref: string } };
+}
+
+const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; projectDocId: string }> = ({
+  initialMilestone,
+  index,
+  projectDocId,
+}) => {
   const [milestone, setMilestone] = useState(initialMilestone);
   const [comment, setComment] = useState(milestone.clientComment || '');
   const [isEditing, setIsEditing] = useState(false);
@@ -46,65 +72,97 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number }> = 
     const file = event.target.files?.[0];
     if (!file) return;
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('uploadedBy', 'Client');
-
     try {
-      const res = await fetch(`http://localhost:5001/api/milestones/${milestone.id}/materials`, {
-        method: 'POST',
-        body: formData,
+      // Upload file to Sanity asset store
+      const asset = await client.assets.upload('file', file, { filename: file.name });
+
+      const newMaterialKey = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const newSanityMaterial: SanityMaterial = {
+        _key: newMaterialKey,
+        _type: 'material',
+        fileName: file.name,
+        uploadedBy: 'Client',
+        file: { _type: 'file', asset: { _type: 'reference', _ref: asset._id } },
+      };
+
+      // Fetch current doc and append to the correct milestone's materials
+      const doc = await client.getDocument<{ milestones: SanityMilestone[] }>(projectDocId);
+      if (!doc) throw new Error('Project not found');
+
+      const updatedMilestones = doc.milestones.map(m => {
+        if (m._key === milestone._key) {
+          return { ...m, materials: [newSanityMaterial, ...(m.materials || [])] };
+        }
+        return m;
       });
-      if (res.ok) {
-        const newMaterial = await res.json();
-        setMaterials(prev => [newMaterial, ...prev]);
-        alert("Material uploaded successfully.");
-      } else {
-        alert("Failed to upload material.");
-      }
+
+      await client.patch(projectDocId).set({ milestones: updatedMilestones }).commit();
+
+      setMaterials(prev => [{
+        id: newMaterialKey,
+        _key: newMaterialKey,
+        fileName: file.name,
+        uploadedBy: 'Client',
+        fileUrl: asset.url,
+        assetId: asset._id,
+      }, ...prev]);
     } catch (e) {
       console.error(e);
-      alert("An error occurred during upload.");
+      alert('Upload failed. Please try again.');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  const handleDelete = async (materialId: string) => {
-    if (!confirm('Are you sure you want to delete this reference?')) return;
+  const handleDelete = async (materialKey: string, assetId?: string) => {
+    if (!confirm('Are you sure you want to delete this file?')) return;
     try {
-      const res = await fetch(`http://localhost:5001/api/materials/${materialId}`, {
-        method: 'DELETE',
+      const doc = await client.getDocument<{ milestones: SanityMilestone[] }>(projectDocId);
+      if (!doc) throw new Error('Project not found');
+
+      const updatedMilestones = doc.milestones.map(m => {
+        if (m._key === milestone._key) {
+          return { ...m, materials: (m.materials || []).filter(mat => mat._key !== materialKey) };
+        }
+        return m;
       });
-      if (res.ok) {
-        setMaterials(prev => prev.filter(m => m.id !== materialId));
-      } else {
-        alert("Failed to delete material.");
-      }
+
+      await client.patch(projectDocId).set({ milestones: updatedMilestones }).commit();
+
+      // Delete the Sanity asset too
+      if (assetId) await client.delete(assetId);
+
+      setMaterials(prev => prev.filter(m => m._key !== materialKey));
     } catch (e) {
       console.error(e);
-      alert("An error occurred during deletion.");
+      alert('Delete failed. Please try again.');
     }
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch(`http://localhost:5001/api/milestones/${milestone.id}/comment`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ comment, isRevision })
-      });
-      if (res.ok) {
-        setIsEditing(false);
-        const updated = await res.json();
-        setMilestone(updated);
-        setComment(updated.clientComment || '');
-        setIsRevision(false);
+      // Update comment and optionally status using Sanity path notation
+      const patch: Record<string, string> = {
+        [`milestones[_key=="${milestone._key}"].clientComment`]: comment,
+      };
+      if (isRevision) {
+        patch[`milestones[_key=="${milestone._key}"].status`] = 'In Revision';
       }
+
+      await client.patch(projectDocId).set(patch).commit();
+
+      setMilestone(prev => ({
+        ...prev,
+        clientComment: comment,
+        status: isRevision ? 'In Revision' : prev.status,
+      }));
+      setIsEditing(false);
+      setIsRevision(false);
     } catch (err) {
       console.error(err);
+      alert('Failed to save. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -117,7 +175,7 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number }> = 
   const isInRevision = milestone.status === 'In Revision';
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.15, duration: 0.5 }}
@@ -127,7 +185,7 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number }> = 
       )}
     >
       {/* Timeline dot */}
-      <div 
+      <div
         className={cn(
           "absolute left-[-19px] md:left-1/2 md:transform md:-translate-x-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full border-4 border-white flex items-center justify-center shadow-md z-10 bg-white",
           isDone && "text-primary-blue",
@@ -246,7 +304,7 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number }> = 
                           className="px-3 py-1.5 text-xs bg-primary-blue text-white rounded-lg flex items-center gap-1.5 hover:bg-blue-600 transition-colors disabled:opacity-70"
                           disabled={isSaving}
                         >
-                          {isSaving ? <Loader2 className="w-3 h-3 animate-spin"/> : <Send className="w-3 h-3" />}
+                          {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
                           Save
                         </button>
                       </div>
@@ -263,7 +321,7 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number }> = 
 
           {/* Materials Section */}
           <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 text-left">
-            <button 
+            <button
               onClick={() => setIsMaterialsOpen(!isMaterialsOpen)}
               className="w-full flex items-center justify-between text-left focus:outline-none"
             >
@@ -277,7 +335,7 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number }> = 
                 <ChevronDown className="w-4 h-4 text-gray-500" />
               )}
             </button>
-            
+
             {isMaterialsOpen && (
               <div className="mt-3 sm:mt-4 space-y-4">
 
@@ -289,11 +347,16 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number }> = 
                     return companyMaterials.length > 0 ? (
                       <ul className="space-y-2">
                         {companyMaterials.map(m => (
-                          <li key={m.id} className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-gray-100 bg-purple-50 hover:bg-purple-100 transition-colors">
+                          <li key={m._key} className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-gray-100 bg-purple-50 hover:bg-purple-100 transition-colors">
                             <div className="bg-purple-100 p-1.5 rounded-md text-purple-600 flex-shrink-0">
                               <FileIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </div>
-                            <a href={`http://localhost:5001${m.fileUrl}`} target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm font-medium text-dark-slate hover:text-primary-blue truncate flex-1">
+                            <a
+                              href={m.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs sm:text-sm font-medium text-dark-slate hover:text-primary-blue truncate flex-1"
+                            >
                               {m.fileName}
                             </a>
                           </li>
@@ -313,17 +376,22 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number }> = 
                     return clientMaterials.length > 0 ? (
                       <ul className="space-y-2 mb-3">
                         {clientMaterials.map(m => (
-                          <li key={m.id} className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-gray-100 bg-blue-50 hover:bg-blue-100 transition-colors group">
+                          <li key={m._key} className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-gray-100 bg-blue-50 hover:bg-blue-100 transition-colors group">
                             <div className="bg-blue-100 p-1.5 rounded-md text-primary-blue flex-shrink-0">
                               <FileIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </div>
-                            <a href={`http://localhost:5001${m.fileUrl}`} target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm font-medium text-dark-slate hover:text-primary-blue truncate flex-1">
+                            <a
+                              href={m.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs sm:text-sm font-medium text-dark-slate hover:text-primary-blue truncate flex-1"
+                            >
                               {m.fileName}
                             </a>
-                            <button 
-                              onClick={() => handleDelete(m.id)}
+                            <button
+                              onClick={() => handleDelete(m._key, m.assetId)}
                               className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                              title="Delete this reference"
+                              title="Delete this file"
                             >
                               <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
@@ -335,18 +403,18 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number }> = 
                     );
                   })()}
                   <div className="flex items-center gap-3">
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      onChange={handleUpload} 
-                      className="hidden" 
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleUpload}
+                      className="hidden"
                     />
-                    <button 
+                    <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
                       className="text-xs px-3 py-2 sm:py-1.5 rounded-lg border border-dashed border-primary-blue text-primary-blue bg-blue-50/50 hover:bg-primary-blue hover:text-white flex items-center gap-2 transition-colors disabled:opacity-50 w-full sm:w-auto justify-center sm:justify-start"
                     >
-                      {isUploading ? <Loader2 className="w-3 h-3 animate-spin"/> : <UploadCloud className="w-3 h-3" />}
+                      {isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <UploadCloud className="w-3 h-3" />}
                       {isUploading ? 'Uploading...' : 'Upload your references'}
                     </button>
                   </div>
@@ -357,14 +425,14 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number }> = 
           </div>
         </div>
       </div>
-      
+
       {/* Spacer for the other side in desktop view */}
       <div className="hidden md:block w-[calc(50%-2.5rem)]"></div>
     </motion.div>
   );
 };
 
-export const Timeline: React.FC<TimelineProps> = ({ milestones }) => {
+export const Timeline: React.FC<TimelineProps> = ({ milestones, projectDocId }) => {
   return (
     <div className="relative pl-10 sm:pl-8 md:pl-0">
       <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-200 transform -translate-x-1/2"></div>
@@ -372,7 +440,12 @@ export const Timeline: React.FC<TimelineProps> = ({ milestones }) => {
 
       <div className="space-y-8 sm:space-y-12">
         {milestones.map((milestone, index) => (
-          <MilestoneItem key={milestone.id} initialMilestone={milestone} index={index} />
+          <MilestoneItem
+            key={milestone._key}
+            initialMilestone={milestone}
+            index={index}
+            projectDocId={projectDocId}
+          />
         ))}
       </div>
     </div>

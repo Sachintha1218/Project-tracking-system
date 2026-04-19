@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+studio/node_modules/
+
+# Environment variables (contains secrets)
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+studio/dist/
+
+# Sanity Studio runtime cache
+studio/.sanity/
+
+# Vite cache
+.vite/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
