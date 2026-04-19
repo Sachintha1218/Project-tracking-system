@@ -1,17 +1,22 @@
-import { useState, useEffect, type FormEvent } from 'react';
-import { Search, Loader2, Compass, Lock, Eye, EyeOff, ArrowLeft, ShieldCheck, Activity, Shield, Folder } from 'lucide-react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import { Search, Loader2, Compass, Lock, Eye, EyeOff, ArrowLeft, ShieldCheck, Activity, Shield, Folder, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dashboard, type ProjectData } from './components/Dashboard';
 import { client } from './lib/sanity';
 
 type Step = 'lookup' | 'password' | 'dashboard';
 
-const PROJECT_LOOKUP_QUERY = `*[_type == "project" && projectId.current == $id][0]{ _id }`;
+const PROJECT_LOOKUP_QUERY = `*[_type == "project" && projectId.current == $id][0]{ 
+  _id, 
+  title, 
+  clientName 
+}`;
 
 const PROJECT_FULL_QUERY = `*[_type == "project" && projectId.current == $id][0]{
   "_id": _id,
   "id": projectId.current,
   title,
+  clientName,
   category,
   status,
   progress,
@@ -43,20 +48,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [projectData, setProjectData] = useState<ProjectData | null>(null);
+  const [projectPreview, setProjectPreview] = useState<{ title: string; clientName: string } | null>(null);
 
   // Persistence: Check for saved credentials on mount
-  useEffect(() => {
-    const savedId = localStorage.getItem('prj_auth_id');
-    const savedPw = localStorage.getItem('prj_auth_pw');
-
-    if (savedId && savedPw) {
-      setProjectId(savedId);
-      setPassword(savedPw);
-      performLogin(savedId, savedPw);
-    }
-  }, []);
-
-  const performLogin = async (id: string, pw: string) => {
+  const performLogin = useCallback(async (id: string, pw: string) => {
     setLoading(true);
     setError('');
     try {
@@ -74,7 +69,18 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const savedId = localStorage.getItem('prj_auth_id');
+    const savedPw = localStorage.getItem('prj_auth_pw');
+
+    if (savedId && savedPw) {
+      setProjectId(savedId);
+      setPassword(savedPw);
+      performLogin(savedId, savedPw);
+    }
+  }, [performLogin]);
 
   // Step 1: Check that the project ID exists
   const handleIdSubmit = async (e: FormEvent) => {
@@ -88,6 +94,7 @@ function App() {
     try {
       const result = await client.fetch(PROJECT_LOOKUP_QUERY, { id: projectId.trim() });
       if (!result) throw new Error('Project not found. Please check your Project ID.');
+      setProjectPreview({ title: result.title, clientName: result.clientName });
       setStep('password');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
@@ -128,6 +135,7 @@ function App() {
     localStorage.removeItem('prj_auth_id');
     localStorage.removeItem('prj_auth_pw');
     setProjectData(null);
+    setProjectPreview(null);
     setProjectId('');
     setPassword('');
     setError('');
@@ -410,10 +418,17 @@ function App() {
 
                 <div className="text-center mb-7">
                   <h2 className="text-2xl sm:text-3xl font-black text-dark-slate mb-2">Enter Password</h2>
-                  <p className="text-gray-500 text-sm leading-relaxed">
-                    Access to{' '}
-                    <span className="font-bold text-primary-blue">{projectId}</span> is protected.
-                    <br />Please enter your project password to continue.
+                  <div className="bg-gray-50/80 rounded-2xl p-4 mb-4 border border-gray-100/50">
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Accessing Project</p>
+                    <p className="text-dark-slate text-base sm:text-lg font-bold leading-tight mb-2">{projectPreview?.title}</p>
+                    <div className="flex items-center justify-center gap-1.5 text-primary-blue bg-blue-50/50 py-1.5 px-3 rounded-full w-fit mx-auto border border-blue-100/50">
+                      <User size={14} strokeWidth={2.5} />
+                      <span className="text-xs font-bold uppercase tracking-wide">{projectPreview?.clientName}</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-400 text-xs font-medium leading-relaxed">
+                    Access to project <span className="font-bold text-gray-600">{projectId}</span> is protected.
+                    <br />Please enter your password to continue.
                   </p>
                 </div>
 

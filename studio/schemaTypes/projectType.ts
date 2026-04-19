@@ -21,6 +21,12 @@ export const projectType = defineType({
       validation: Rule => Rule.required(),
     }),
     defineField({
+      name: 'clientName',
+      title: 'Client Name',
+      type: 'string',
+      validation: Rule => Rule.required(),
+    }),
+    defineField({
       name: 'category',
       title: 'Category',
       type: 'string',

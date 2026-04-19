@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Timeline, type Milestone } from './Timeline';
-import { FolderGit2, CheckCircle, Activity, Box } from 'lucide-react';
+import { FolderGit2, CheckCircle, Activity, Box, User, Tag } from 'lucide-react';
 
 export interface ProjectData {
   _id: string;
   id: string;
   title: string;
+  clientName: string;
   category: string;
   status: string;
   progress: number;
@@ -38,16 +39,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
             <Box size={24} strokeWidth={1.5} className="sm:hidden" />
             <Box size={32} strokeWidth={1.5} className="hidden sm:block" />
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="text-xs font-semibold tracking-wider text-gray-400 uppercase">{data.id}</span>
-              <span className="px-2 py-0.5 rounded-full bg-gray-100 text-xs font-medium text-gray-600">
-                {data.category}
-              </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className="text-[10px] sm:text-xs font-black tracking-[0.1em] text-gray-400 uppercase bg-gray-50 px-2 py-0.5 rounded border border-gray-100">{data.id}</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-[10px] sm:text-xs font-bold text-primary-blue border border-blue-100/50">
+                <Tag size={12} strokeWidth={2.5} />
+                <span className="uppercase tracking-wider">{data.category}</span>
+              </div>
             </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-dark-slate leading-tight break-words">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-dark-slate leading-tight break-words mb-2 tracking-tight">
               {data.title}
             </h1>
+            <div className="flex items-center gap-2 text-gray-500 hover:text-primary-blue transition-colors group/client cursor-default">
+              <div className="w-6 h-6 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 group-hover/client:bg-blue-50 group-hover/client:border-blue-100 transition-colors">
+                <User size={12} strokeWidth={2.5} className="group-hover/client:text-primary-blue" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-[0.05em] text-gray-400">Client:</span>
+              <span className="text-xs sm:text-sm font-extrabold text-gray-700 group-hover/client:text-dark-slate transition-colors">{data.clientName}</span>
+            </div>
           </div>
         </div>
 
