@@ -54,6 +54,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
               <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center border border-gray-100 group-hover/client:bg-blue-50 group-hover/client:border-blue-100 transition-all shadow-sm">
                 <User size={16} strokeWidth={2.5} className="group-hover/client:text-primary-blue" />
               </div>
+              <span className="text-xs sm:text-sm font-extrabold text-gray-700 group-hover/client:text-dark-slate transition-colors">{data.clientName}</span>
             </div>
           </div>
         </div>
