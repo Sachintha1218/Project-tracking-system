@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Timeline, type Milestone } from './Timeline';
-import { FolderGit2, CheckCircle, Activity, Box, User, Tag } from 'lucide-react';
+import { FolderGit2, CheckCircle, Activity, Box, User, Tag, Calendar } from 'lucide-react';
 
 export interface ProjectData {
   _id: string;
@@ -19,6 +19,43 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
+  const calculateDuration = () => {
+    if (!data.milestones || data.milestones.length === 0) return null;
+    
+    const dates = data.milestones.flatMap(m => [
+      new Date(m.startDate).getTime(),
+      new Date(m.endDate).getTime()
+    ]).filter(t => !isNaN(t));
+
+    if (dates.length === 0) return null;
+
+    const start = Math.min(...dates);
+    const end = Math.max(...dates);
+    
+    const diffMs = end - start;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24)) + 1;
+
+    const formatDate = (d: number) => new Date(d).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+
+    let durationText = `${diffDays} Days`;
+    if (diffDays >= 30) {
+      const months = Math.floor(diffDays / 30);
+      const remainingDays = diffDays % 30;
+      durationText = `${months} Month${months > 1 ? 's' : ''}${remainingDays > 0 ? `, ${remainingDays} Day${remainingDays > 1 ? 's' : ''}` : ''}`;
+    }
+    
+    return {
+      durationText,
+      range: `${formatDate(start)} - ${formatDate(end)}`
+    };
+  };
+
+  const projectDuration = calculateDuration();
+
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6 sm:space-y-10 py-4 sm:py-8 px-2 sm:px-4 relative">
       {/* Dashboard Background Decorative Elements */}
@@ -86,7 +123,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
           <h2 className="text-lg sm:text-xl font-bold text-dark-slate">Overall Progress</h2>
           <span className="text-2xl sm:text-3xl font-black text-primary-blue">{data.progress}%</span>
         </div>
-        <div className="relative w-full h-4 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+        <div className="relative w-full h-4 bg-gray-100 rounded-full overflow-hidden shadow-inner mb-4">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${data.progress}%` }}
@@ -96,6 +133,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
             <div className="absolute top-0 right-0 bottom-0 w-8 bg-white/20 animate-[pulse_2s_ease-in-out_infinite] skew-x-12 transform -translate-x-2"></div>
           </motion.div>
         </div>
+
+        {/* Project Duration - NEW */}
+        {projectDuration && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 mt-2 border-t border-gray-50">
+            <div className="flex items-center gap-2 group/duration">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-primary-blue border border-blue-100/50 group-hover/duration:scale-110 transition-transform">
+                <Calendar size={14} strokeWidth={2.5} />
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 leading-none mb-1">Project Duration</div>
+                <div className="text-sm font-black text-dark-slate leading-none">{projectDuration.durationText}</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 leading-none mb-1">Project Timeline</div>
+              <div className="text-xs font-bold text-gray-600 leading-none">{projectDuration.range}</div>
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {/* Timeline Section */}
