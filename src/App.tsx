@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
-import { Search, Loader2, Compass, Lock, Eye, EyeOff, ArrowLeft, ShieldCheck, Activity, Shield, Folder, User } from 'lucide-react';
+import { Search, Loader2, Compass, Lock, Eye, EyeOff, ArrowLeft, ShieldCheck, Activity, Shield, Folder, User, Zap, Globe, MessageSquare, Waypoints, Vault, Gauge } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dashboard, type ProjectData } from './components/Dashboard';
+import { FloatingIndustryElement, CodeBrackets, CloudNode, TechCircuit, Megaphone, GrowthChart, MarketingTarget } from './components/IndustryIcons';
 import { client } from './lib/sanity';
 
 type Step = 'lookup' | 'password' | 'dashboard';
@@ -167,6 +168,10 @@ function App() {
         style={{ backgroundImage: 'radial-gradient(#4A90E2 2px, transparent 2px)', backgroundSize: '32px 32px' }}
       />
 
+      <div className="absolute inset-0 z-0 opacity-[0.02] pointer-events-none animate-scanline" 
+           style={{ backgroundImage: 'linear-gradient(rgba(74, 144, 226, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 144, 226, 0.1) 1px, transparent 1px)', backgroundSize: '100px 100px' }} 
+      />
+
       {/* Dynamic Flowing Glowing Orbs / Gradient Mesh */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
         <motion.div
@@ -177,7 +182,12 @@ function App() {
         <motion.div
           animate={{ x: ['20%', '-20%', '20%'], y: ['20%', '-10%', '20%'], scale: [1, 1.3, 1] }}
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-0 right-0 w-[250px] h-[250px] sm:w-[700px] sm:h-[700px] rounded-full bg-purple-300/20 blur-[80px] sm:blur-[150px] -z-10"
+          className="absolute bottom-0 right-0 w-[250px] h-[250px] sm:w-[700px] sm:h-[700px] rounded-full bg-purple-400/30 blur-[80px] sm:blur-[150px] -z-10"
+        />
+        <motion.div
+          animate={{ x: ['-10%', '10%', '-10%'], y: ['-10%', '20%', '-10%'], scale: [1, 1.2, 1] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute top-0 right-10 w-[200px] h-[200px] sm:w-[500px] sm:h-[500px] rounded-full bg-purple-500/10 blur-[100px] -z-10"
         />
         <motion.div
           animate={{ x: ['10%', '-30%', '10%'], y: ['-10%', '30%', '-10%'], scale: [1.2, 1, 1.2] }}
@@ -186,38 +196,84 @@ function App() {
         />
       </div>
 
-      {/* Floating SVG Geometric Shapes (Responsive Mobile/Desktop) */}
+      {/* --- Robot Background Mascots (Semi-transparent) --- */}
       <motion.div
-        animate={{ y: [0, -40, 0], rotate: [0, 90, 0] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[8%] sm:top-[18%] left-[2%] sm:left-[12%] w-10 h-10 sm:w-16 sm:h-16 border-2 sm:border-4 border-blue-200/50 rounded-xl sm:rounded-3xl pointer-events-none -z-10 backdrop-blur-sm bg-white/5 opacity-60 sm:opacity-100"
-      />
-      <motion.div
-        animate={{ y: [0, 50, 0], x: [0, 30, 0], scale: [1, 0.9, 1] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute top-[50%] sm:top-[65%] right-[5%] sm:right-[10%] w-14 h-14 sm:w-24 sm:h-24 border-2 sm:border-4 border-purple-200/40 rounded-full pointer-events-none -z-10 backdrop-blur-sm bg-white/5 opacity-50 sm:opacity-100"
-      />
-      <motion.div
-        animate={{ rotate: [45, -45, 45], scale: [1, 1.3, 1] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 5 }}
-        className="absolute bottom-[10%] sm:bottom-[25%] left-[5%] sm:left-[8%] w-8 h-8 sm:w-12 sm:h-12 border-2 sm:border-[3px] border-teal-200/60 pointer-events-none -z-10 backdrop-blur-sm bg-white/5 opacity-50 sm:opacity-100"
-      />
-      <motion.div
-        animate={{ y: [0, -60, 0], rotate: [0, 180, 360] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[20%] sm:top-[25%] right-[5%] sm:right-[25%] opacity-20 sm:opacity-30 pointer-events-none -z-10 transform scale-50 sm:scale-100"
+        animate={{ y: [0, -30, 0], opacity: [0.05, 0.1, 0.05] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-[10%] right-[30%] w-40 h-40 pointer-events-none -z-10 grayscale"
       >
-        <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M50 5L93.3013 80H6.69873L50 5Z" fill="url(#paint0_linear)" opacity="0.5"/>
-          <path d="M50 5L93.3013 80H6.69873L50 5Z" stroke="#4A90E2" strokeWidth="4" strokeLinejoin="round"/>
-          <defs>
-            <linearGradient id="paint0_linear" x1="50" y1="5" x2="50" y2="80" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#4A90E2" stopOpacity="0.5"/>
-              <stop offset="1" stopColor="#A855F7" stopOpacity="0"/>
-            </linearGradient>
-          </defs>
-        </svg>
+        <img src="/assets/robots/wave.png" alt="" className="w-full h-full object-contain" />
       </motion.div>
+
+      <motion.div
+        animate={{ y: [0, 40, 0], x: [0, 20, 0], opacity: [0.03, 0.08, 0.03] }}
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        className="absolute bottom-[10%] left-[15%] w-48 h-48 pointer-events-none -z-10 grayscale"
+      >
+        <img src="/assets/robots/laptop.png" alt="" className="w-full h-full object-contain" />
+      </motion.div>
+
+      <motion.div
+        animate={{ rotate: [0, 10, 0], opacity: [0.04, 0.06, 0.04] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 5 }}
+        className="absolute top-[50%] left-[5%] w-32 h-32 pointer-events-none -z-10 grayscale"
+      >
+        <img src="/assets/robots/clock.png" alt="" className="w-full h-full object-contain" />
+      </motion.div>
+
+      {/* --- Digital Industry Floating Elements --- */}
+      <FloatingIndustryElement 
+        className="absolute top-[15%] left-[10%] w-12 h-12 text-blue-400 opacity-20 hidden lg:block industry-glow-blue"
+        delay={1}
+        duration={12}
+      >
+        <CodeBrackets />
+      </FloatingIndustryElement>
+
+      <FloatingIndustryElement 
+        className="absolute top-[40%] right-[15%] w-16 h-16 text-purple-400 opacity-15 hidden lg:block industry-glow-purple"
+        delay={3}
+        duration={15}
+        y={[0, 40, 0]}
+        rotate={[0, -20, 0]}
+      >
+        <CloudNode />
+      </FloatingIndustryElement>
+
+      <FloatingIndustryElement 
+        className="absolute bottom-[20%] left-[20%] w-14 h-14 text-teal-400 opacity-10 hidden lg:block"
+        delay={5}
+        duration={18}
+      >
+        <TechCircuit />
+      </FloatingIndustryElement>
+
+      {/* --- Marketing Industry Floating Elements --- */}
+      <FloatingIndustryElement 
+        className="absolute top-[25%] right-[25%] w-10 h-10 text-orange-400 opacity-20 hidden lg:block"
+        delay={2}
+        duration={14}
+        rotate={[0, 45, 0]}
+      >
+        <Megaphone />
+      </FloatingIndustryElement>
+
+      <FloatingIndustryElement 
+        className="absolute bottom-[35%] left-[5%] w-12 h-12 text-green-400 opacity-15 hidden lg:block"
+        delay={4}
+        duration={16}
+        scale={[1, 1.2, 1]}
+      >
+        <GrowthChart />
+      </FloatingIndustryElement>
+
+      <FloatingIndustryElement 
+        className="absolute top-[60%] left-[-2%] w-14 h-14 text-red-400 opacity-10 hidden lg:block"
+        delay={6}
+        duration={20}
+      >
+        <MarketingTarget />
+      </FloatingIndustryElement>
 
       <nav className="relative z-10 w-full px-4 sm:px-6 py-4 sm:py-6 flex justify-between items-center max-w-7xl mx-auto">
         <div className="flex items-center cursor-pointer" onClick={handleReset}>
@@ -295,23 +351,22 @@ function App() {
                 </svg>
               </motion.div>
 
+              {/* Waving Robot mascot (Shifted further right to avoid text overlap) */}
               <motion.div
-                animate={{ y: [0, 20, 0], rotate: [-15, 5, -15] }}
-                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-0 -right-8 sm:top-10 sm:-right-40 w-20 h-20 sm:w-44 sm:h-44 -z-10 pointer-events-none opacity-40 sm:opacity-70"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-[-100px] right-[-100px] sm:top-[-160px] sm:right-[-280px] w-32 h-32 sm:w-72 sm:h-72 z-0 pointer-events-none"
               >
-                <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                  <g filter="drop-shadow(0px 20px 30px rgba(168, 85, 247, 0.4))">
-                    <path d="M50 140C30 120 30 90 50 70L110 10C130 -10 160 -10 180 10C200 30 200 60 180 80L120 140C100 160 70 160 50 140Z" fill="url(#paint1_linear)"/>
-                    <path d="M65 125L165 25" stroke="white" strokeWidth="8" strokeLinecap="round" opacity="0.5" filter="blur(2px)"/>
-                  </g>
-                  <defs>
-                    <linearGradient id="paint1_linear" x1="50" y1="140" x2="180" y2="10" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#C084FC"/>
-                      <stop offset="1" stopColor="#7E22CE"/>
-                    </linearGradient>
-                  </defs>
-                </svg>
+                <div className="relative w-full h-full p-4">
+                  {/* Glass bubble with even better clarity and deeper z-index */}
+                  <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-full shadow-[0_0_40px_rgba(74,144,226,0.15)] border border-white/5"></div>
+                  <img 
+                    src="/assets/robots/wave.png" 
+                    alt="Waving Robot" 
+                    className="relative z-10 w-full h-full object-contain mix-blend-multiply transition-all duration-700 opacity-80" 
+                    style={{ WebkitMaskImage: 'radial-gradient(circle, black 65%, transparent 75%)', maskImage: 'radial-gradient(circle, black 65%, transparent 75%)' }}
+                  />
+                </div>
               </motion.div>
 
               <motion.div animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-2 right-4 sm:-top-6 sm:right-10 text-primary-blue pointer-events-none w-4 h-4 sm:w-6 sm:h-6 opacity-60 sm:opacity-100">
@@ -340,7 +395,7 @@ function App() {
                     type="text"
                     value={projectId}
                     onChange={(e) => setProjectId(e.target.value)}
-                    placeholder="e.g. PRJ-001"
+                    placeholder="e.g. SDPR0000"
                     className="w-full pl-14 pr-36 py-5 text-base bg-white border-2 border-gray-100 rounded-full shadow-2xl shadow-gray-200/50 outline-none focus:border-primary-blue focus:ring-4 focus:ring-primary-blue/10 transition-all font-medium text-dark-slate placeholder-gray-400"
                   />
                   <button
@@ -372,7 +427,7 @@ function App() {
                     type="text"
                     value={projectId}
                     onChange={(e) => setProjectId(e.target.value)}
-                    placeholder="e.g. PRJ-001"
+                    placeholder="e.g. SDPR1001"
                     className="w-full pl-11 pr-4 py-4 text-base bg-white border-2 border-gray-100 rounded-2xl shadow-xl shadow-gray-200/50 outline-none focus:border-primary-blue focus:ring-4 focus:ring-primary-blue/10 transition-all font-medium text-dark-slate placeholder-gray-400"
                   />
                 </div>
@@ -403,30 +458,31 @@ function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="mt-16 sm:mt-24 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-0 opacity-90"
+                className="mt-16 sm:mt-24 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-0 opacity-90 relative"
               >
+
                 <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white shadow-2xl shadow-gray-200/40 flex flex-col items-center text-center group hover:-translate-y-2 hover:bg-white/80 transition-all duration-300">
                   <div className="w-12 h-12 rounded-2xl bg-blue-100/50 text-primary-blue flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                    <Activity size={20} strokeWidth={2} />
+                    <Waypoints size={20} strokeWidth={2} />
                   </div>
-                  <h3 className="text-sm font-bold text-dark-slate mb-1.5">Real-time Tracking</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed font-medium">Monitor your project's progress as it happens.</p>
+                  <h3 className="text-sm font-bold text-dark-slate mb-1.5">Tracking Advantages</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed font-medium">Optimize workflows with real-time data and complete transparency.</p>
                 </div>
 
                 <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white shadow-2xl shadow-gray-200/40 flex flex-col items-center text-center group hover:-translate-y-2 hover:bg-white/80 transition-all duration-300">
                   <div className="w-12 h-12 rounded-2xl bg-purple-100/50 text-purple-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                    <Shield size={20} strokeWidth={2} />
+                    <Vault size={20} strokeWidth={2} />
                   </div>
-                  <h3 className="text-sm font-bold text-dark-slate mb-1.5">Secure Access</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed font-medium">Your materials and milestones are protected.</p>
+                  <h3 className="text-sm font-bold text-dark-slate mb-1.5">Enterprise Security</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed font-medium">Protect your sensitive data with enterprise-grade encryption.</p>
                 </div>
 
                 <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white shadow-2xl shadow-gray-200/40 flex flex-col items-center text-center group hover:-translate-y-2 hover:bg-white/80 transition-all duration-300">
                   <div className="w-12 h-12 rounded-2xl bg-teal-100/50 text-teal-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                    <Folder size={20} strokeWidth={2} />
+                    <Gauge size={20} strokeWidth={2} />
                   </div>
-                  <h3 className="text-sm font-bold text-dark-slate mb-1.5">Centralized Assets</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed font-medium">All your deliverables organized in one place.</p>
+                  <h3 className="text-sm font-bold text-dark-slate mb-1.5">Delivery Precision</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed font-medium">Ensure on-time delivery with real-time milestone monitoring.</p>
                 </div>
               </motion.div>
             </motion.div>
@@ -443,10 +499,26 @@ function App() {
               className="w-full max-w-md mx-auto mt-10 sm:mt-20"
             >
               <div className="bg-white rounded-3xl shadow-2xl shadow-gray-200/60 border border-gray-100 p-8 sm:p-10">
-                <div className="flex justify-center mb-6">
-                  <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-inner">
+                <div className="flex justify-center mb-6 relative">
+                  <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-inner relative z-10">
                     <Lock className="w-7 h-7 text-primary-blue" strokeWidth={1.8} />
                   </div>
+                  {/* Floating Robot gatekeeper in a bubble */}
+                  <motion.div
+                    animate={{ y: [0, -5, 0], x: [0, 5, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -top-20 -right-16 w-36 h-36 pointer-events-none hidden sm:block"
+                  >
+                    <div className="relative w-full h-full">
+                      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-full shadow-xl border border-white/40"></div>
+                      <img 
+                        src="/assets/robots/clipboard.png" 
+                        alt="Robot security" 
+                        className="relative z-10 w-full h-full object-contain mix-blend-multiply p-2" 
+                        style={{ WebkitMaskImage: 'radial-gradient(circle, black 65%, transparent 75%)', maskImage: 'radial-gradient(circle, black 65%, transparent 75%)' }}
+                      />
+                    </div>
+                  </motion.div>
                 </div>
 
                 <div className="text-center mb-7">

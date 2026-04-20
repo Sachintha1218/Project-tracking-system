@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Box, Globe, Smartphone, PenTool, BarChart3, Search, MessageSquare, Tag, User, CheckCircle, Activity, FolderGit2, Calendar } from 'lucide-react';
 import { Timeline, type Milestone } from './Timeline';
-import { FolderGit2, CheckCircle, Activity, Box, User, Tag, Calendar } from 'lucide-react';
+import { FloatingIndustryElement, CodeBrackets, Megaphone, TechCircuit, GrowthChart, MarketingTarget } from './IndustryIcons';
 
 export interface ProjectData {
   _id: string;
@@ -58,10 +59,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6 sm:space-y-10 py-4 sm:py-8 px-2 sm:px-4 relative">
-      {/* Dashboard Background Decorative Elements */}
-      <div className="absolute top-[20%] right-[-5%] w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] rounded-full bg-purple-200/40 blur-[80px] sm:blur-[100px] opacity-60 pointer-events-none -z-10 animate-pulse"></div>
-      <div className="absolute bottom-[30%] left-[-10%] w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] rounded-full bg-blue-200/40 blur-[90px] sm:blur-[120px] opacity-70 pointer-events-none -z-10"></div>
-      <div className="absolute top-[60%] left-[20%] w-[250px] h-[250px] rounded-full bg-teal-100/30 blur-[70px] opacity-50 pointer-events-none -z-10"></div>
+      {/* Dashboard Background Decorative Elements - Robots & Industry Icons */}
+
+
+
+
+      <FloatingIndustryElement className="absolute top-[40%] right-[-2%] w-12 h-12 text-teal-400 opacity-5 hidden lg:block" delay={3} duration={18}>
+        <TechCircuit />
+      </FloatingIndustryElement>
+
+      <FloatingIndustryElement className="absolute bottom-[10%] right-[15%] w-10 h-10 text-green-400 opacity-5 hidden lg:block" delay={5} duration={16}>
+        <GrowthChart />
+      </FloatingIndustryElement>
+
+      {/* Floating industry icons in dashboard background */}
+      <FloatingIndustryElement className="absolute top-[10%] left-[-2%] w-10 h-10 text-primary-blue opacity-10 hidden lg:block" delay={2} duration={15}>
+        <CodeBrackets />
+      </FloatingIndustryElement>
+      <FloatingIndustryElement className="absolute bottom-[20%] right-0 w-8 h-8 text-purple-400 opacity-10 hidden lg:block" delay={4} duration={12}>
+        <Megaphone />
+      </FloatingIndustryElement>
 
       {/* Header Section */}
       <motion.div
@@ -80,7 +97,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-[10px] sm:text-xs font-black tracking-[0.1em] text-gray-400 uppercase bg-gray-50 px-2 py-0.5 rounded border border-gray-100">{data.id}</span>
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-[10px] sm:text-xs font-bold text-primary-blue border border-blue-100/50">
-                <Tag size={12} strokeWidth={2.5} />
+                {(() => {
+                  const cat = data.category.toLowerCase();
+                  if (cat.includes('web')) return <Globe size={12} strokeWidth={2.5} />;
+                  if (cat.includes('app') || cat.includes('mobile')) return <Smartphone size={12} strokeWidth={2.5} />;
+                  if (cat.includes('design') || cat.includes('ux')) return <PenTool size={12} strokeWidth={2.5} />;
+                  if (cat.includes('marketing')) return <BarChart3 size={12} strokeWidth={2.5} />;
+                  if (cat.includes('seo')) return <Search size={12} strokeWidth={2.5} />;
+                  if (cat.includes('social')) return <MessageSquare size={12} strokeWidth={2.5} />;
+                  return <Tag size={12} strokeWidth={2.5} />;
+                })()}
                 <span className="uppercase tracking-wider">{data.category}</span>
               </div>
             </div>
@@ -136,7 +162,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
 
         {/* Project Duration - NEW */}
         {projectDuration && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 mt-2 border-t border-gray-50">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 mt-2 border-t border-gray-50 relative">
             <div className="flex items-center gap-2 group/duration">
               <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-primary-blue border border-blue-100/50 group-hover/duration:scale-110 transition-transform">
                 <Calendar size={14} strokeWidth={2.5} />
@@ -146,6 +172,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
                 <div className="text-sm font-black text-dark-slate leading-none">{projectDuration.durationText}</div>
               </div>
             </div>
+
+
+
             <div className="text-right">
               <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 leading-none mb-1">Project Timeline</div>
               <div className="text-xs font-bold text-gray-600 leading-none">{projectDuration.range}</div>
