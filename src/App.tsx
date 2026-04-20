@@ -49,6 +49,7 @@ function App() {
   const [error, setError] = useState('');
   const [projectData, setProjectData] = useState<ProjectData | null>(null);
   const [projectPreview, setProjectPreview] = useState<{ title: string; clientName: string } | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Persistence: Check for saved credentials on mount
   const performLogin = useCallback(async (id: string, pw: string) => {
@@ -78,7 +79,11 @@ function App() {
     if (savedId && savedPw) {
       setProjectId(savedId);
       setPassword(savedPw);
-      performLogin(savedId, savedPw);
+      performLogin(savedId, savedPw).finally(() => {
+        setIsInitializing(false);
+      });
+    } else {
+      setIsInitializing(false);
     }
   }, [performLogin]);
 
@@ -214,7 +219,6 @@ function App() {
         </svg>
       </motion.div>
 
-      {/* Header */}
       <nav className="relative z-10 w-full px-4 sm:px-6 py-4 sm:py-6 flex justify-between items-center max-w-7xl mx-auto">
         <div className="flex items-center cursor-pointer" onClick={handleReset}>
           <img src="/logo.png" alt="Sisenco Digital" className="h-12 sm:h-16 w-auto object-contain drop-shadow-sm" />
@@ -231,7 +235,36 @@ function App() {
 
       <main className="relative z-10 w-full px-4 pt-8 pb-20">
         <AnimatePresence mode="wait">
-
+          {isInitializing ? (
+            <motion.div
+              key="loader"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center min-h-[60vh]"
+            >
+              <div className="relative">
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  className="w-24 h-24 rounded-full border-2 border-blue-100/50 border-t-primary-blue shadow-lg shadow-blue-100/20"
+                />
+                <div className="absolute inset-0 flex items-center justify-center p-4">
+                  <motion.img 
+                    src="/logo.png" 
+                    alt="Logo" 
+                    className="w-full h-auto object-contain"
+                    animate={{ scale: [0.9, 1.1, 0.9] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                </div>
+              </div>
+              <p className="mt-8 text-dark-slate font-black text-xs tracking-[0.2em] uppercase opacity-40">
+                Loading...
+              </p>
+            </motion.div>
+          ) : (
+            <>
           {/* ── STEP 1: Project ID ── */}
           {step === 'lookup' && (
             <motion.div
@@ -504,6 +537,8 @@ function App() {
             </motion.div>
           )}
 
+            </>
+          )}
         </AnimatePresence>
       </main>
     </div>
