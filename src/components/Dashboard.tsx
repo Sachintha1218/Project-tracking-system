@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Box, Globe, Smartphone, PenTool, BarChart3, Search, MessageSquare, Tag, User, CheckCircle, Activity, FolderGit2, Calendar } from 'lucide-react';
 import { Timeline, type Milestone } from './Timeline';
-import { FloatingIndustryElement, CodeBrackets, Megaphone, TechCircuit, GrowthChart, MarketingTarget } from './IndustryIcons';
+import { FloatingIndustryElement, CodeBrackets, Megaphone, TechCircuit, GrowthChart } from './IndustryIcons';
 
 export interface ProjectData {
   _id: string;
