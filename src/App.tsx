@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Dashboard, type ProjectData } from './components/Dashboard';
 import { FloatingIndustryElement, CodeBrackets, CloudNode, TechCircuit, Megaphone, GrowthChart, MarketingTarget } from './components/IndustryIcons';
 import { client } from './lib/sanity';
+import { getSessionValue, setSessionValue, removeSessionValue } from './lib/cookie';
 
 type Step = 'lookup' | 'password' | 'dashboard';
 
@@ -74,8 +75,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const savedId = localStorage.getItem('prj_auth_id');
-    const savedPw = localStorage.getItem('prj_auth_pw');
+    const savedId = getSessionValue('prj_auth_id');
+    const savedPw = getSessionValue('prj_auth_pw');
 
     if (savedId && savedPw) {
       setProjectId(savedId);
@@ -123,9 +124,9 @@ function App() {
       if (!project) throw new Error('Project not found.');
       if (project.password !== password) throw new Error('Incorrect password. Please try again.');
       
-      // Save credentials for persistence
-      localStorage.setItem('prj_auth_id', projectId.trim());
-      localStorage.setItem('prj_auth_pw', password);
+      // Save credentials for session persistence
+      setSessionValue('prj_auth_id', projectId.trim());
+      setSessionValue('prj_auth_pw', password);
 
       const { password: _pw, ...safeProject } = project;
       setProjectData(safeProject as ProjectData);
@@ -138,8 +139,8 @@ function App() {
   };
 
   const handleReset = () => {
-    localStorage.removeItem('prj_auth_id');
-    localStorage.removeItem('prj_auth_pw');
+    removeSessionValue('prj_auth_id');
+    removeSessionValue('prj_auth_pw');
     setProjectData(null);
     setProjectPreview(null);
     setProjectId('');
