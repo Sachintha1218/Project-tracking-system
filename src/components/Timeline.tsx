@@ -187,11 +187,11 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
       {/* Timeline dot */}
       <div
         className={cn(
-          "absolute left-[-19px] md:left-1/2 md:transform md:-translate-x-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full border-4 border-white flex items-center justify-center shadow-md z-10 bg-white",
-          isDone && "text-primary-blue",
-          isCurrent && "text-primary-blue",
-          isPending && "text-gray-400",
-          isInRevision && "text-orange-500"
+          "absolute left-[-19px] md:left-1/2 md:transform md:-translate-x-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full border-4 border-[#0A192F] flex items-center justify-center shadow-md z-10 bg-[#1E2D4A]",
+          isDone && "text-green-400 border-[#0A192F] bg-[#1E2D4A]",
+          isCurrent && "text-primary-blue bg-[#0A192F]",
+          isPending && "text-gray-500",
+          isInRevision && "text-orange-400 border-[#0A192F] bg-[#1E2D4A]"
         )}
       >
         {isDone && <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />}
@@ -211,9 +211,9 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
         isEven ? "md:pl-10" : "md:pr-10 md:text-right"
       )}>
         <div className={cn(
-          "p-4 sm:p-5 rounded-2xl bg-white shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl card-highlight",
-          isCurrent && "ring-2 ring-primary-blue/20 shadow-primary-blue/10",
-          isInRevision && "ring-2 ring-orange-500/20 shadow-orange-500/10"
+          "p-4 sm:p-5 rounded-2xl bg-[#0A192F] shadow-[0_20px_50px_rgba(10,25,47,0.5)] border border-[#1E2D4A] transition-all duration-300 hover:shadow-[0_25px_60px_rgba(10,25,47,0.6)]",
+          isCurrent && "ring-2 ring-primary-blue/30 shadow-primary-blue/20",
+          isInRevision && "ring-2 ring-orange-500/30 shadow-orange-500/20"
         )}>
           <div className={cn(
             "flex flex-col gap-1",
@@ -221,29 +221,29 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
           )}>
             <div className="flex items-center gap-2 mb-1">
               <span className={cn(
-                "text-xs font-semibold px-2.5 py-0.5 rounded-full",
-                isDone && "bg-green-100 text-green-700",
-                isCurrent && "bg-blue-100 text-primary-blue",
-                isPending && "bg-gray-100 text-gray-600",
-                isInRevision && "bg-orange-100 text-orange-600"
+                "text-xs font-semibold px-2.5 py-0.5 rounded-full border",
+                isDone && "bg-green-500/10 text-green-400 border-green-500/20",
+                isCurrent && "bg-primary-blue/10 text-primary-blue border-primary-blue/20",
+                isPending && "bg-white/5 text-gray-400 border-white/10",
+                isInRevision && "bg-orange-500/10 text-orange-400 border-orange-500/20"
               )}>
                 {milestone.status}
               </span>
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-dark-slate leading-snug">{milestone.title}</h3>
-            <div className="flex items-center text-xs sm:text-sm text-gray-500 mt-1.5 sm:mt-2 gap-1.5 flex-wrap">
+            <h3 className="text-base sm:text-lg font-bold text-white leading-snug">{milestone.title}</h3>
+            <div className="flex items-center text-xs sm:text-sm text-blue-200/70 mt-1.5 sm:mt-2 gap-1.5 flex-wrap">
               <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-70 flex-shrink-0" />
               <span className="leading-tight">{milestone.startDate} &mdash; {milestone.endDate}</span>
             </div>
           </div>
 
           {/* Comment Section */}
-          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 text-left">
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-[#1E2D4A] text-left">
             <button
               onClick={() => setIsFeedbackOpen(!isFeedbackOpen)}
               className="w-full flex items-center justify-between text-left focus:outline-none"
             >
-              <h4 className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <h4 className="text-xs sm:text-sm font-semibold text-blue-200 flex items-center gap-2">
                 <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-blue" />
                 Feedbacks
               </h4>
@@ -255,12 +255,12 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
             </button>
 
             {isFeedbackOpen && (
-              <motion.div className="mt-3 sm:mt-4" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+              <div className="mt-3 sm:mt-4">
                 {!isEditing && (
                   <div className="flex justify-end mb-2">
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="text-xs text-primary-blue font-medium hover:underline transition-all"
+                      className="text-xs text-primary-blue font-medium hover:text-blue-400 transition-all"
                     >
                       {comment ? 'Edit' : 'Add Comment'}
                     </button>
@@ -272,18 +272,18 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
                     <textarea
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
-                      className="w-full text-sm p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-blue/20 focus:border-primary-blue outline-none resize-none transition-all"
+                      className="w-full text-sm p-3 border border-white/10 bg-white/5 text-white rounded-xl focus:ring-2 focus:ring-primary-blue/30 focus:border-primary-blue outline-none resize-none transition-all placeholder-gray-500"
                       rows={3}
                       placeholder="Add your comments or feedback..."
                     />
 
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <label className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 cursor-pointer">
+                      <label className="flex items-center gap-2 text-xs sm:text-sm text-blue-200/80 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={isRevision}
                           onChange={(e) => setIsRevision(e.target.checked)}
-                          className="w-4 h-4 text-primary-blue rounded border-gray-300 focus:ring-primary-blue"
+                          className="w-4 h-4 bg-white/10 text-primary-blue rounded border-white/20 focus:ring-primary-blue"
                         />
                         Submit as a revision
                       </label>
@@ -294,7 +294,7 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
                             setComment(milestone.clientComment || '');
                             setIsEditing(false);
                           }}
-                          className="px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                          className="px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                           disabled={isSaving}
                         >
                           Cancel
@@ -310,23 +310,23 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <p className="text-xs sm:text-sm text-gray-600 italic whitespace-pre-wrap">
-                    {comment || <span className="text-gray-400">No comment provided yet.</span>}
+                 ) : (
+                  <p className="text-xs sm:text-sm text-blue-100 italic whitespace-pre-wrap">
+                    {comment || <span className="text-gray-500">No comment provided yet.</span>}
                   </p>
                 )}
-              </motion.div>
+              </div>
             )}
           </div>
 
           {/* Materials Section */}
-          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 text-left">
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-[#1E2D4A] text-left">
             <button
               onClick={() => setIsMaterialsOpen(!isMaterialsOpen)}
               className="w-full flex items-center justify-between text-left focus:outline-none"
             >
-              <h4 className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <FileIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-500" />
+              <h4 className="text-xs sm:text-sm font-semibold text-blue-200 flex items-center gap-2">
+                <FileIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />
                 Materials and References
               </h4>
               {isMaterialsOpen ? (
@@ -346,31 +346,24 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
                     const companyMaterials = materials.filter(m => m.uploadedBy === 'Company');
                     return companyMaterials.length > 0 ? (
                       <ul className="space-y-2">
-                        {companyMaterials.map((m, mi) => (
-                          <motion.li
-                            key={m._key}
-                            initial={{ opacity: 0, y: 8 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, amount: 0.25 }}
-                            transition={{ duration: 0.35, delay: mi * 0.04 }}
-                            className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-gray-100 bg-purple-50 hover:bg-purple-100 transition-colors"
-                          >
-                            <div className="bg-purple-100 p-1.5 rounded-md text-purple-600 flex-shrink-0">
+                        {companyMaterials.map(m => (
+                          <li key={m._key} className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-purple-500/20 bg-purple-500/5 hover:bg-purple-500/10 transition-colors">
+                            <div className="bg-purple-500/20 p-1.5 rounded-md text-purple-300 flex-shrink-0 border border-purple-500/30">
                               <FileIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </div>
                             <a
                               href={m.fileUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs sm:text-sm font-medium text-dark-slate hover:text-primary-blue truncate flex-1"
+                              className="text-xs sm:text-sm font-medium text-white hover:text-purple-300 truncate flex-1"
                             >
                               {m.fileName}
                             </a>
-                          </motion.li>
+                          </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-xs text-gray-400 italic">No materials provided by your project manager.</p>
+                      <p className="text-xs text-gray-500 italic">No materials provided by your project manager.</p>
                     );
                   })()}
                 </div>
@@ -382,38 +375,31 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
                     const clientMaterials = materials.filter(m => m.uploadedBy === 'Client');
                     return clientMaterials.length > 0 ? (
                       <ul className="space-y-2 mb-3">
-                        {clientMaterials.map((m, mi) => (
-                              <motion.li
-                                key={m._key}
-                                initial={{ opacity: 0, y: 8 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, amount: 0.25 }}
-                                transition={{ duration: 0.35, delay: mi * 0.04 }}
-                                className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-gray-100 bg-blue-50 hover:bg-blue-100 transition-colors group"
-                              >
-                                <div className="bg-blue-100 p-1.5 rounded-md text-primary-blue flex-shrink-0">
-                                  <FileIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                </div>
-                                <a
-                                  href={m.fileUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs sm:text-sm font-medium text-dark-slate hover:text-primary-blue truncate flex-1"
-                                >
-                                  {m.fileName}
-                                </a>
-                                <button
-                                  onClick={() => handleDelete(m._key, m.assetId)}
-                                  className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                                  title="Delete this file"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                </button>
-                              </motion.li>
-                            ))}
+                        {clientMaterials.map(m => (
+                          <li key={m._key} className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-primary-blue/20 bg-primary-blue/5 hover:bg-primary-blue/10 transition-colors group">
+                            <div className="bg-primary-blue/20 p-1.5 rounded-md text-primary-blue flex-shrink-0 border border-primary-blue/30">
+                              <FileIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            </div>
+                            <a
+                              href={m.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs sm:text-sm font-medium text-white hover:text-primary-blue truncate flex-1"
+                            >
+                              {m.fileName}
+                            </a>
+                            <button
+                              onClick={() => handleDelete(m._key, m.assetId)}
+                              className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                              title="Delete this file"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            </button>
+                          </li>
+                        ))}
                       </ul>
                     ) : (
-                      <p className="text-xs text-gray-400 italic mb-3">No references uploaded yet.</p>
+                      <p className="text-xs text-gray-500 italic mb-3">No references uploaded yet.</p>
                     );
                   })()}
                   <div className="flex items-center gap-3">
@@ -426,7 +412,7 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
-                      className="text-xs px-3 py-2 sm:py-1.5 rounded-lg border border-dashed border-primary-blue text-primary-blue bg-blue-50/50 hover:bg-primary-blue hover:text-white flex items-center gap-2 transition-colors disabled:opacity-50 w-full sm:w-auto justify-center sm:justify-start"
+                      className="text-xs px-3 py-2 sm:py-1.5 rounded-lg border border-dashed border-primary-blue/50 text-primary-blue bg-primary-blue/10 hover:bg-primary-blue hover:text-white flex items-center gap-2 transition-colors disabled:opacity-50 w-full sm:w-auto justify-center sm:justify-start"
                     >
                       {isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <UploadCloud className="w-3 h-3" />}
                       {isUploading ? 'Uploading...' : 'Upload your references'}
@@ -449,8 +435,8 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
 export const Timeline: React.FC<TimelineProps> = ({ milestones, projectDocId }) => {
   return (
     <div className="relative pl-10 sm:pl-8 md:pl-0">
-      <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-200 transform -translate-x-1/2"></div>
-      <div className="md:hidden absolute left-[15px] top-0 bottom-0 w-0.5 bg-gray-200"></div>
+      <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-[#1E2D4A] transform -translate-x-1/2"></div>
+      <div className="md:hidden absolute left-[15px] top-0 bottom-0 w-0.5 bg-[#1E2D4A]"></div>
 
       <div className="space-y-8 sm:space-y-12">
         {milestones.map((milestone, index) => (

@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react';
-import { Search, Loader2, Compass, Lock, Eye, EyeOff, ArrowLeft, ShieldCheck, User, Waypoints, Vault, Gauge, ArrowRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import { Search, Loader2, Compass, Lock, Eye, EyeOff, ArrowLeft, ShieldCheck, User, Route, LineChart, Users } from 'lucide-react';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Dashboard, type ProjectData } from './components/Dashboard';
 import { FloatingIndustryElement, CodeBrackets, CloudNode, TechCircuit, Megaphone, GrowthChart, MarketingTarget } from './components/IndustryIcons';
-import TypingHint from './components/TypingHint';
 import { client } from './lib/sanity';
 import { getSessionValue, setSessionValue, removeSessionValue } from './lib/cookie';
 
@@ -54,6 +53,29 @@ function App() {
   const [projectPreview, setProjectPreview] = useState<{ title: string; clientName: string } | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
+  // --- Interactive Mouse Tracking ---
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const smoothMouseX = useSpring(mouseX, { damping: 50, stiffness: 400 });
+  const smoothMouseY = useSpring(mouseY, { damping: 50, stiffness: 400 });
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const { clientX, clientY } = e;
+    const { innerWidth, innerHeight } = window;
+    // Normalize coordinates around the center of the screen
+    mouseX.set(clientX - innerWidth / 2);
+    mouseY.set(clientY - innerHeight / 2);
+  }, [mouseX, mouseY]);
+
+  // Parallax offsets
+  const mascotX = useTransform(smoothMouseX, [-1000, 1000], [-50, 50]);
+  const mascotY = useTransform(smoothMouseY, [-1000, 1000], [-50, 50]);
+  const mascotRotate = useTransform(smoothMouseX, [-1000, 1000], [-10, 10]);
+  
+  const titleX = useTransform(smoothMouseX, [-1000, 1000], [-10, 10]);
+  const titleY = useTransform(smoothMouseY, [-1000, 1000], [-10, 10]);
+
   // Persistence: Check for saved credentials on mount
   const performLogin = useCallback(async (id: string, pw: string) => {
     setLoading(true);
@@ -89,18 +111,6 @@ function App() {
       setIsInitializing(false);
     }
   }, [performLogin]);
-
-  // Typing hint behaviour: attach to any visible .search-pill .typing and restart when `step` changes
-  useEffect(() => {
-    const cleanups: Array<() => void> = [];
-
-    // leave this effect in place as a safety fallback — main hint is rendered via TypingHint component
-    return () => { cleanups.forEach(fn => fn()); };
-  }, [step]);
-
-  // Refs for inputs to pass to TypingHint
-  const projectInputRef = useRef<HTMLInputElement | null>(null);
-  const passwordInputRef = useRef<HTMLInputElement | null>(null);
 
   // Step 1: Check that the project ID exists
   const handleIdSubmit = async (e: FormEvent) => {
@@ -171,53 +181,38 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-transparent selection:bg-primary-blue selection:text-white">
+    <div 
+      className="min-h-screen relative overflow-hidden bg-[#ffffff] selection:bg-primary-blue selection:text-white"
+      onMouseMove={handleMouseMove}
+    >
       {/* ── Animated Background ── */}
 
-      {/* Full-viewport animated gradient (soft, behind other bg elements) */}
-      <div className="absolute inset-0 -z-20 animated-gradient" aria-hidden="true" />
+      {/* ── Background ── */}
 
-      {/* Animated Scrolling Dot Grid */}
+      {/* --- Robot Background Mascots (Semi-transparent) --- */}
       <motion.div
-        animate={{ backgroundPosition: ['0px 0px', '32px 32px'] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
-        className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none"
-        style={{ backgroundImage: 'radial-gradient(#4A90E2 2px, transparent 2px)', backgroundSize: '32px 32px' }}
-      />
+        animate={{ y: [0, -30, 0], opacity: [0.05, 0.1, 0.05] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-[10%] right-[30%] w-40 h-40 pointer-events-none -z-10 grayscale"
+      >
+        <img src="/robot-mascot.png" alt="" className="w-full h-full object-contain" />
+      </motion.div>
 
-      <div className="absolute inset-0 z-0 opacity-[0.02] pointer-events-none animate-scanline" 
-           style={{ backgroundImage: 'linear-gradient(rgba(74, 144, 226, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(74, 144, 226, 0.1) 1px, transparent 1px)', backgroundSize: '100px 100px' }} 
-      />
+      <motion.div
+        animate={{ y: [0, 40, 0], x: [0, 20, 0], opacity: [0.03, 0.08, 0.03] }}
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        className="absolute bottom-[10%] left-[15%] w-48 h-48 pointer-events-none -z-10 grayscale"
+      >
+        <img src="/robot-mascot.png" alt="" className="w-full h-full object-contain" />
+      </motion.div>
 
-      {/* Dynamic Flowing Glowing Orbs / Gradient Mesh */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
-        <motion.div
-          animate={{ x: ['-20%', '20%', '-20%'], y: ['-20%', '10%', '-20%'], scale: [1, 1.05, 1] }}
-          transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-0 left-0 w-[300px] h-[300px] sm:w-[800px] sm:h-[800px] rounded-full blur-[80px] sm:blur-[150px] -z-10"
-          style={{ backgroundColor: 'rgba(74,144,226,0.06)' }}
-        />
-        <motion.div
-          animate={{ x: ['20%', '-20%', '20%'], y: ['20%', '-10%', '20%'], scale: [1, 1.08, 1] }}
-          transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-0 right-0 w-[250px] h-[250px] sm:w-[700px] sm:h-[700px] rounded-full blur-[80px] sm:blur-[150px] -z-10"
-          style={{ backgroundColor: 'rgba(124,58,237,0.04)' }}
-        />
-        <motion.div
-          animate={{ x: ['-10%', '10%', '-10%'], y: ['-10%', '20%', '-10%'], scale: [1, 1.05, 1] }}
-          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute top-0 right-10 w-[200px] h-[200px] sm:w-[500px] sm:h-[500px] rounded-full blur-[100px] -z-10"
-          style={{ backgroundColor: 'rgba(124,58,237,0.03)' }}
-        />
-        <motion.div
-          animate={{ x: ['10%', '-30%', '10%'], y: ['-10%', '30%', '-10%'], scale: [1.05, 1, 1.05] }}
-          transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/3 left-0 sm:left-1/4 w-[200px] h-[200px] sm:w-[500px] sm:h-[500px] rounded-full blur-[70px] sm:blur-[120px] -z-10"
-          style={{ backgroundColor: 'rgba(6,182,212,0.04)' }}
-        />
-      </div>
-
-      
+      <motion.div
+        animate={{ rotate: [0, 10, 0], opacity: [0.04, 0.06, 0.04] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 5 }}
+        className="absolute top-[50%] left-[5%] w-32 h-32 pointer-events-none -z-10 grayscale"
+      >
+        <img src="/robot-mascot.png" alt="" className="w-full h-full object-contain" />
+      </motion.div>
 
       {/* --- Digital Industry Floating Elements --- */}
       <FloatingIndustryElement 
@@ -319,152 +314,145 @@ function App() {
             </motion.div>
           ) : (
             <>
-          {/* ── STEP 1: Project ID ── */}
+          {/* ── STEP 1: Projec          {/* ── STEP 1: Project ID ── */}
           {step === 'lookup' && (
             <motion.div
               key="lookup"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, x: -40 }}
-              transition={{ duration: 0.35 }}
-              className="w-full max-w-xl mx-auto mt-10 sm:mt-20 relative z-10"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="w-full min-h-[70vh] flex flex-col items-center justify-center relative z-10 px-4 mt-8 lg:mt-12"
             >
-              {/* ── Creative Hero Graphics ── */}
-              <motion.div
-                animate={{ y: [0, -15, 0], x: [0, 10, 0] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-10 -left-6 sm:-top-20 sm:-left-32 w-24 h-24 sm:w-48 sm:h-48 -z-10 pointer-events-none opacity-40 sm:opacity-80"
-              >
-                <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                  <circle cx="100" cy="100" r="80" fill="url(#paint0_radial)" />
-                  <path d="M160 60C160 82.0914 142.091 100 120 100C97.9086 100 80 82.0914 80 60" stroke="white" strokeWidth="4" strokeLinecap="round" opacity="0.3" filter="blur(2px)"/>
-                  <circle cx="80" cy="70" r="15" fill="white" opacity="0.4" filter="blur(4px)"/>
-                  <defs>
-                    <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(70 60) rotate(45) scale(120)">
-                      <stop stopColor="#93C5FD"/>
-                      <stop offset="0.6" stopColor="#3B82F6"/>
-                      <stop offset="1" stopColor="#1E3A8A"/>
-                    </radialGradient>
-                  </defs>
-                </svg>
-              </motion.div>
-
-              
-
-              <motion.div animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-2 right-4 sm:-top-6 sm:right-10 text-primary-blue pointer-events-none w-4 h-4 sm:w-6 sm:h-6 opacity-60 sm:opacity-100">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="currentColor"/></svg>
-              </motion.div>
-              <motion.div animate={{ opacity: [0.2, 0.8, 0.2], scale: [0.9, 1.5, 0.9] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.5 }} className="absolute bottom-8 -left-4 sm:bottom-16 sm:-left-12 text-teal-400 pointer-events-none w-3 h-3 sm:w-4 sm:h-4 opacity-70 sm:opacity-100">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="currentColor"/></svg>
-              </motion.div>
-
-              {/* Hero card with embedded search (desktop) */}
-              <div className="hero-card max-w-xl mx-auto mt-6 sm:mt-10 relative z-10">
-                {/* Animated Robot Mascot */}
-                <motion.div
-                  initial={{ y: 0, scale: 1 }}
-                  animate={{ y: [0, -18, 0], scale: [1, 1.04, 1] }}
-                  transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-                  className="flex justify-center mb-2"
-                  style={{ zIndex: 10 }}
+              {/* CENTERED HERO SECTION - DARK BLUE RECTANGLE */}
+              <div className="relative z-10 flex flex-col items-center max-w-3xl w-full pt-20 lg:pt-32">
+                
+                {/* Mascot floating in front of the dark blue card */}
+                <div className="absolute -top-10 right-0 sm:-top-16 sm:-right-8 md:-top-24 md:-right-12 lg:-top-32 lg:-right-20 w-[150px] h-[150px] sm:w-[200px] sm:h-[200px] md:w-[250px] md:h-[250px] lg:w-[320px] lg:h-[320px] pointer-events-none z-20 opacity-100">
+                  <motion.div 
+                    style={{ x: mascotX, y: mascotY, rotate: mascotRotate }}
+                    animate={{ y: [0, -15, 0] }}
+                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                    className="relative w-full h-full p-4"
+                  >
+                    <img src="/robot-mascot.png" alt="Sisenco Mascot" className="relative z-10 w-full h-full object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.2)]" />
+                  </motion.div>
+                </div>
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="w-full max-w-2xl mx-auto bg-[#0A192F] p-8 md:p-12 rounded-[2rem] shadow-[0_20px_50px_rgba(10,25,47,0.5)] border border-[#1E2D4A] mb-10 text-center"
                 >
-                  <img
-                    src="/robot-mascot2.png"
-                    alt="Robot Mascot"
-                    style={{ width: 96, height: 96, objectFit: 'contain', filter: 'drop-shadow(0 4px 16px rgba(74,144,226,0.10))' }}
-                  />
-                </motion.div>
-                <h1 className="hero-title hero-title-large">
-                  Track your <span className="gradient-text">project</span>.
-                </h1>
-                <p className="hero-sub mt-3">Elevate your workflow. Measure every milestone live with Sisenco Digital.</p>
+                  <motion.div 
+                    style={{ x: titleX, y: titleY }}
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="mb-8"
+                  >
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter leading-tight drop-shadow-sm mb-4">
+                      Track your project.
+                    </h1>
+                    <p className="text-blue-200 text-base md:text-lg leading-relaxed max-w-xl mx-auto opacity-90">
+                      Enter your Project ID. See everything.
+                    </p>
+                  </motion.div>
 
-                <div className="search-wrapper">
-                  {/* Desktop search pill */}
-                  <form onSubmit={handleIdSubmit} className="hidden sm:block">
-                    <div className={`search-pill ${projectId ? 'input-has-value' : ''}`}>
-                      <div className="search-icon">
-                          <Search size={18} />
-                        </div>
-                      <TypingHint hint="Type your Project ID" inputRef={projectInputRef} />
+                  {/* Desktop form */}
+                  <form onSubmit={handleIdSubmit} className="hidden sm:block relative w-full mb-2">
+                    <div className="relative flex items-center">
+                      <div className="absolute left-6 text-gray-400">
+                        <Search size={24} />
+                      </div>
                       <input
                         type="text"
                         value={projectId}
                         onChange={(e) => setProjectId(e.target.value)}
-                        className="search-input"
-                        ref={projectInputRef}
-                        aria-label="Project ID"
+                        placeholder="e.g. SDPR0000"
+                        className="w-full pl-16 pr-40 py-6 text-lg bg-white/10 rounded-full outline-none focus:ring-2 focus:ring-primary-blue transition-all font-medium text-white placeholder-gray-400 border border-white/10"
                       />
                       <button
                         type="submit"
                         disabled={loading}
-                        className="search-arrow"
-                        aria-label="Continue"
+                        className="absolute right-2 top-2 bottom-2 px-8 bg-primary-blue text-white font-bold rounded-full hover:bg-blue-500 active:scale-95 transition-all shadow-lg flex items-center justify-center disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed text-base"
                       >
-                        {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <ArrowRight size={18} />}
+                        {loading ? <Loader2 className="animate-spin w-5 h-5 mx-2" /> : 'Track Project'}
                       </button>
                     </div>
-                    {error && (
-                      <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-center mt-4 font-medium text-sm">{error}</motion.p>
-                    )}
                   </form>
 
-                  {/* Mobile fallback: stacked input transformed into a pill with circular arrow CTA */}
-                  <form onSubmit={handleIdSubmit} className="sm:hidden mt-4">
-                    <div className={`mobile-stack search-pill relative ${projectId ? 'input-has-value' : ''}`}>
-                      <div className="search-icon">
-                        <Search size={18} />
+                  {/* Mobile form */}
+                  <form onSubmit={handleIdSubmit} className="sm:hidden flex flex-col gap-3">
+                    <div className="relative flex items-center bg-white/10 rounded-2xl border border-white/10">
+                      <div className="absolute left-4 text-gray-400">
+                        <Search size={20} />
                       </div>
-                      <TypingHint hint="Type your Project ID" inputRef={projectInputRef} />
                       <input
                         type="text"
                         value={projectId}
                         onChange={(e) => setProjectId(e.target.value)}
-                        className="search-input"
-                        ref={projectInputRef}
-                        aria-label="Project ID"
+                        placeholder="e.g. SDPR1001"
+                        className="w-full pl-12 pr-4 py-4 text-base bg-transparent rounded-2xl outline-none font-medium text-white placeholder-gray-400"
                       />
-                      <button type="submit" disabled={loading} className="search-arrow" aria-label="Continue">
-                        {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <ArrowRight size={18} />}
-                      </button>
                     </div>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-4 bg-primary-blue text-white font-bold rounded-2xl hover:bg-blue-500 active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-base"
+                    >
+                      {loading ? (
+                        <><Loader2 className="animate-spin w-5 h-5" /> Searching...</>
+                      ) : (
+                        <><Compass className="w-5 h-5" /> Track Project</>
+                      )}
+                    </button>
                   </form>
-                </div>
+                </motion.div>
+
+                {error && (
+                  <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 font-medium text-sm text-center -mt-6 mb-8 z-20 relative">
+                    {error}
+                  </motion.p>
+                )}
               </div>
 
-              
-
-              {/* Decorative Features / Stats for the bottom area */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
+              {/* BOTTOM FEATURE GRID */}
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="mt-16 sm:mt-24 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-0 opacity-90 relative"
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="w-full max-w-5xl relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 text-center pb-8 px-4"
               >
-
-                <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white shadow-2xl shadow-gray-200/40 flex flex-col items-center text-center group hover:-translate-y-2 hover:bg-white/80 transition-all duration-300">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-100/50 text-primary-blue flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                    <Waypoints size={20} strokeWidth={2} />
+                <motion.div whileHover={{ y: -5 }} className="bg-white rounded-3xl p-8 shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col items-center cursor-default transition-all duration-300 group">
+                  <div className="w-14 h-14 rounded-2xl bg-blue-50 text-primary-blue flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                    <Route size={24} strokeWidth={2} />
                   </div>
-                  <h3 className="text-sm font-bold text-dark-slate mb-1.5">Tracking Advantages</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed font-medium">Optimize workflows with real-time data and complete transparency.</p>
-                </div>
+                  <h3 className="text-lg font-bold text-dark-slate mb-3">Campaign Tracking</h3>
+                  <p className="text-sm text-gray-500 font-medium leading-relaxed">
+                    From brief to launch, track every milestone, deadline, deliverable, and approval — all in one place.
+                  </p>
+                </motion.div>
 
-                <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white shadow-2xl shadow-gray-200/40 flex flex-col items-center text-center group hover:-translate-y-2 hover:bg-white/80 transition-all duration-300">
-                  <div className="w-12 h-12 rounded-2xl bg-purple-100/50 text-purple-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                    <Vault size={20} strokeWidth={2} />
+                <motion.div whileHover={{ y: -5 }} className="bg-white rounded-3xl p-8 shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col items-center cursor-default transition-all duration-300 group">
+                  <div className="w-14 h-14 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                    <LineChart size={24} strokeWidth={2} />
                   </div>
-                  <h3 className="text-sm font-bold text-dark-slate mb-1.5">Enterprise Security</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed font-medium">Protect your sensitive data with enterprise-grade encryption.</p>
-                </div>
+                  <h3 className="text-lg font-bold text-dark-slate mb-3">Performance Analytics</h3>
+                  <p className="text-sm text-gray-500 font-medium leading-relaxed">
+                    Get live updates on ad spend, clicks, and conversions across all campaigns, turning real-time data into smarter, faster decisions.
+                  </p>
+                </motion.div>
 
-                <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 border border-white shadow-2xl shadow-gray-200/40 flex flex-col items-center text-center group hover:-translate-y-2 hover:bg-white/80 transition-all duration-300">
-                  <div className="w-12 h-12 rounded-2xl bg-teal-100/50 text-teal-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                    <Gauge size={20} strokeWidth={2} />
+                <motion.div whileHover={{ y: -5 }} className="bg-white rounded-3xl p-8 shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col items-center cursor-default transition-all duration-300 group">
+                  <div className="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                    <Users size={24} strokeWidth={2} />
                   </div>
-                  <h3 className="text-sm font-bold text-dark-slate mb-1.5">Delivery Precision</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed font-medium">Ensure on-time delivery with real-time milestone monitoring.</p>
-                </div>
+                  <h3 className="text-lg font-bold text-dark-slate mb-3">Team Collaboration</h3>
+                  <p className="text-sm text-gray-500 font-medium leading-relaxed">
+                    Assign tasks, log revisions, share creative assets, and comment on milestones — keeping your SEO, paid, and social teams aligned without the email chaos.
+                  </p>
+                </motion.div>
               </motion.div>
             </motion.div>
           )}
@@ -477,74 +465,103 @@ function App() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 40 }}
               transition={{ duration: 0.35 }}
-              className="w-full max-w-md mx-auto mt-10 sm:mt-20"
+              className="w-full max-w-md mx-auto mt-20 sm:mt-32 relative"
             >
-              <div className="hero-card rounded-3xl p-8 sm:p-10">
-                  <div className="flex justify-center mb-6 relative">
-                    <div className="w-16 h-16 rounded-2xl bg-white/6 border border-white/6 flex items-center justify-center shadow-inner relative z-10">
-                      <Lock className="w-7 h-7 text-white" strokeWidth={1.6} />
+              {/* Mascot floating in front of the dark blue card */}
+              <div className="absolute -top-16 -right-8 w-32 h-32 sm:-top-20 sm:-right-12 sm:w-40 sm:h-40 pointer-events-none z-20 opacity-100 hidden sm:block">
+                <motion.div
+                  style={{ x: mascotX, y: mascotY, rotate: mascotRotate }}
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                  className="relative w-full h-full"
+                >
+                  <img 
+                    src="/robot-mascot.png" 
+                    alt="Robot security" 
+                    className="relative z-10 w-full h-full object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.2)]" 
+                  />
+                </motion.div>
+              </div>
+
+              <div className="bg-[#0A192F] rounded-[2rem] shadow-[0_20px_50px_rgba(10,25,47,0.5)] border border-[#1E2D4A] p-8 sm:p-10 relative z-10">
+                <div className="flex justify-center mb-6 relative">
+                  <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center shadow-inner relative z-10">
+                    <Lock className="w-7 h-7 text-white" strokeWidth={1.8} />
+                  </div>
+                </div>
+
+                <div className="text-center mb-7">
+                  <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">Enter Password</h2>
+                  <div className="bg-white/5 rounded-2xl p-4 mb-4 border border-white/10">
+                    <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mb-1">Accessing Project</p>
+                    <p className="text-white text-base sm:text-lg font-bold leading-tight mb-2">{projectPreview?.title}</p>
+                    <div className="flex items-center justify-center gap-1.5 text-primary-blue bg-primary-blue/20 py-1.5 px-3 rounded-full w-fit mx-auto border border-primary-blue/30">
+                      <User size={14} strokeWidth={2.5} />
+                      <span className="text-xs font-bold uppercase tracking-wide">{projectPreview?.clientName}</span>
                     </div>
                   </div>
+                  <p className="text-blue-200/80 text-xs font-medium leading-relaxed">
+                    Access to project <span className="font-bold text-white">{projectId}</span> is protected.
+                    <br />Please enter your password to continue.
+                  </p>
+                </div>
 
-                  <div className="text-center mb-7">
-                    <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">Enter Password</h2>
-                    <div className="bg-white/6 rounded-2xl p-4 mb-4 border border-white/8">
-                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:'rgba(210,220,235,0.6)'}}>Accessing Project</p>
-                      <p className="text-white text-base sm:text-lg font-bold leading-tight mb-2">{projectPreview?.title}</p>
-                      <div className="flex items-center justify-center gap-1.5 text-white bg-white/3 py-1.5 px-3 rounded-full w-fit mx-auto border border-white/6">
-                        <User size={14} strokeWidth={2.5} />
-                        <span className="text-xs font-bold uppercase tracking-wide">{projectPreview?.clientName}</span>
-                      </div>
-                    </div>
-                    <p className="text-white text-sm font-medium leading-relaxed">
-                      Access to project <span className="font-bold">{projectId}</span> is protected.
-                      <br />Please enter your password to continue.
-                    </p>
+                <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter password"
+                      autoFocus
+                      className="w-full pl-5 pr-12 py-4 text-base bg-white/10 border border-white/10 rounded-2xl outline-none focus:border-primary-blue focus:ring-2 focus:ring-primary-blue transition-all font-medium text-white placeholder-gray-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      tabIndex={-1}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
 
-                  <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                    <div className={`search-pill ${password ? 'input-has-value' : ''}`}>
-                    <div className="search-icon">
-                      <Lock size={16} />
-                    </div>
-                    <TypingHint hint="Enter your password" inputRef={passwordInputRef} />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        autoFocus
-                        className="search-input"
-                        aria-label="Password"
-                        placeholder="Enter your password"
-                        ref={passwordInputRef}
-                      />
-
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(v => !v)}
-                        className="pill-eye"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  <AnimatePresence>
+                    {error && (
+                      <motion.p
+                        key="pw-error"
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="text-red-400 text-sm font-medium text-center"
                       >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
+                        {error}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
 
-                      <button type="submit" disabled={loading} className="search-arrow" aria-label="Continue">
-                        {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <ArrowRight size={18} />}
-                      </button>
-                    </div>
-
-                    <AnimatePresence>
-                      {error && (
-                        <motion.p key="pw-error" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-red-500 text-sm font-medium text-center">{error}</motion.p>
-                      )}
-                    </AnimatePresence>
-
-                  </form>
-
-                  <button type="button" onClick={handleBackToId} className="mt-5 w-full flex items-center justify-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors font-medium">
-                    <ArrowLeft size={15} />
-                    Change Project ID
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-4 bg-primary-blue text-white font-bold rounded-2xl hover:bg-blue-500 active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-base mt-2"
+                  >
+                    {loading ? (
+                      <><Loader2 className="animate-spin w-5 h-5" /> Verifying...</>
+                    ) : (
+                      <><ShieldCheck className="w-5 h-5" /> Access Timeline</>
+                    )}
                   </button>
+                </form>
+
+                <button
+                  type="button"
+                  onClick={handleBackToId}
+                  className="mt-5 w-full flex items-center justify-center gap-1.5 text-sm text-blue-200/80 hover:text-white transition-colors font-medium"
+                >
+                  <ArrowLeft size={15} />
+                  Change Project ID
+                </button>
               </div>
             </motion.div>
           )}
