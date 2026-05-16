@@ -83,16 +83,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
         whileHover={{ y: -5, scale: 1.01 }}
         transition={{ duration: 0.5, type: 'spring', bounce: 0.4 }}
-        className="bg-white/80 backdrop-blur-lg rounded-3xl p-5 sm:p-8 shadow-xl shadow-gray-200/50 border border-white/60 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 group hover:shadow-2xl hover:shadow-blue-200/40 transition-all"
+        className="bg-white/80 backdrop-blur-lg rounded-3xl p-5 sm:p-8 shadow-xl shadow-gray-200/50 border border-white/60 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 group hover:shadow-2xl hover:shadow-blue-200/40 transition-all card-highlight glow-on-hover"
       >
         <div className="flex items-center gap-3 sm:gap-5">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center text-primary-blue shadow-inner border border-blue-200/50 flex-shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+          <motion.div initial={{ scale: 0.98 }} animate={{ scale: 1 }} transition={{ duration: 0.6, type: 'spring', bounce: 0.3 }}
+            className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center text-primary-blue shadow-inner border border-blue-200/50 flex-shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
             <Box size={24} strokeWidth={1.5} className="sm:hidden" />
             <Box size={32} strokeWidth={1.5} className="hidden sm:block" />
-          </div>
+          </motion.div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-[10px] sm:text-xs font-black tracking-[0.1em] text-gray-400 uppercase bg-gray-50 px-2 py-0.5 rounded border border-gray-100">{data.id}</span>
@@ -143,7 +145,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
         animate={{ opacity: 1, scale: 1 }}
         whileHover={{ y: -5, scale: 1.01 }}
         transition={{ duration: 0.5, delay: 0.2, type: 'spring', bounce: 0.4 }}
-        className="bg-white/80 backdrop-blur-lg rounded-3xl p-5 sm:p-8 shadow-xl shadow-gray-200/50 border border-white/60 group hover:shadow-2xl hover:shadow-blue-200/40 transition-all"
+        className="bg-white/80 backdrop-blur-lg rounded-3xl p-5 sm:p-8 shadow-xl shadow-gray-200/50 border border-white/60 group hover:shadow-2xl hover:shadow-blue-200/40 transition-all card-highlight"
       >
         <div className="flex justify-between items-end mb-4">
           <h2 className="text-lg sm:text-xl font-bold text-dark-slate">Overall Progress</h2>

@@ -211,7 +211,7 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
         isEven ? "md:pl-10" : "md:pr-10 md:text-right"
       )}>
         <div className={cn(
-          "p-4 sm:p-5 rounded-2xl bg-white shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl",
+          "p-4 sm:p-5 rounded-2xl bg-white shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl card-highlight",
           isCurrent && "ring-2 ring-primary-blue/20 shadow-primary-blue/10",
           isInRevision && "ring-2 ring-orange-500/20 shadow-orange-500/10"
         )}>
@@ -255,7 +255,7 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
             </button>
 
             {isFeedbackOpen && (
-              <div className="mt-3 sm:mt-4">
+              <motion.div className="mt-3 sm:mt-4" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
                 {!isEditing && (
                   <div className="flex justify-end mb-2">
                     <button
@@ -315,7 +315,7 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
                     {comment || <span className="text-gray-400">No comment provided yet.</span>}
                   </p>
                 )}
-              </div>
+              </motion.div>
             )}
           </div>
 
@@ -346,8 +346,15 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
                     const companyMaterials = materials.filter(m => m.uploadedBy === 'Company');
                     return companyMaterials.length > 0 ? (
                       <ul className="space-y-2">
-                        {companyMaterials.map(m => (
-                          <li key={m._key} className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-gray-100 bg-purple-50 hover:bg-purple-100 transition-colors">
+                        {companyMaterials.map((m, mi) => (
+                          <motion.li
+                            key={m._key}
+                            initial={{ opacity: 0, y: 8 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, amount: 0.25 }}
+                            transition={{ duration: 0.35, delay: mi * 0.04 }}
+                            className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-gray-100 bg-purple-50 hover:bg-purple-100 transition-colors"
+                          >
                             <div className="bg-purple-100 p-1.5 rounded-md text-purple-600 flex-shrink-0">
                               <FileIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </div>
@@ -359,7 +366,7 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
                             >
                               {m.fileName}
                             </a>
-                          </li>
+                          </motion.li>
                         ))}
                       </ul>
                     ) : (
@@ -375,28 +382,35 @@ const MilestoneItem: React.FC<{ initialMilestone: Milestone; index: number; proj
                     const clientMaterials = materials.filter(m => m.uploadedBy === 'Client');
                     return clientMaterials.length > 0 ? (
                       <ul className="space-y-2 mb-3">
-                        {clientMaterials.map(m => (
-                          <li key={m._key} className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-gray-100 bg-blue-50 hover:bg-blue-100 transition-colors group">
-                            <div className="bg-blue-100 p-1.5 rounded-md text-primary-blue flex-shrink-0">
-                              <FileIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            </div>
-                            <a
-                              href={m.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs sm:text-sm font-medium text-dark-slate hover:text-primary-blue truncate flex-1"
-                            >
-                              {m.fileName}
-                            </a>
-                            <button
-                              onClick={() => handleDelete(m._key, m.assetId)}
-                              className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                              title="Delete this file"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            </button>
-                          </li>
-                        ))}
+                        {clientMaterials.map((m, mi) => (
+                              <motion.li
+                                key={m._key}
+                                initial={{ opacity: 0, y: 8 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, amount: 0.25 }}
+                                transition={{ duration: 0.35, delay: mi * 0.04 }}
+                                className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg border border-gray-100 bg-blue-50 hover:bg-blue-100 transition-colors group"
+                              >
+                                <div className="bg-blue-100 p-1.5 rounded-md text-primary-blue flex-shrink-0">
+                                  <FileIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                </div>
+                                <a
+                                  href={m.fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs sm:text-sm font-medium text-dark-slate hover:text-primary-blue truncate flex-1"
+                                >
+                                  {m.fileName}
+                                </a>
+                                <button
+                                  onClick={() => handleDelete(m._key, m.assetId)}
+                                  className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                  title="Delete this file"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                </button>
+                              </motion.li>
+                            ))}
                       </ul>
                     ) : (
                       <p className="text-xs text-gray-400 italic mb-3">No references uploaded yet.</p>

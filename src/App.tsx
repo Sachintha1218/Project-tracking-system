@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, type FormEvent } from 'react';
-import { Search, Loader2, Compass, Lock, Eye, EyeOff, ArrowLeft, ShieldCheck, User, Waypoints, Vault, Gauge } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react';
+import { Search, Loader2, Compass, Lock, Eye, EyeOff, ArrowLeft, ShieldCheck, User, Waypoints, Vault, Gauge, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dashboard, type ProjectData } from './components/Dashboard';
 import { FloatingIndustryElement, CodeBrackets, CloudNode, TechCircuit, Megaphone, GrowthChart, MarketingTarget } from './components/IndustryIcons';
+import TypingHint from './components/TypingHint';
 import { client } from './lib/sanity';
 import { getSessionValue, setSessionValue, removeSessionValue } from './lib/cookie';
 
@@ -89,6 +90,18 @@ function App() {
     }
   }, [performLogin]);
 
+  // Typing hint behaviour: attach to any visible .search-pill .typing and restart when `step` changes
+  useEffect(() => {
+    const cleanups: Array<() => void> = [];
+
+    // leave this effect in place as a safety fallback — main hint is rendered via TypingHint component
+    return () => { cleanups.forEach(fn => fn()); };
+  }, [step]);
+
+  // Refs for inputs to pass to TypingHint
+  const projectInputRef = useRef<HTMLInputElement | null>(null);
+  const passwordInputRef = useRef<HTMLInputElement | null>(null);
+
   // Step 1: Check that the project ID exists
   const handleIdSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -158,8 +171,11 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-white selection:bg-primary-blue selection:text-white">
+    <div className="min-h-screen relative overflow-hidden bg-transparent selection:bg-primary-blue selection:text-white">
       {/* ── Animated Background ── */}
+
+      {/* Full-viewport animated gradient (soft, behind other bg elements) */}
+      <div className="absolute inset-0 -z-20 animated-gradient" aria-hidden="true" />
 
       {/* Animated Scrolling Dot Grid */}
       <motion.div
@@ -176,51 +192,32 @@ function App() {
       {/* Dynamic Flowing Glowing Orbs / Gradient Mesh */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
         <motion.div
-          animate={{ x: ['-20%', '20%', '-20%'], y: ['-20%', '10%', '-20%'], scale: [1, 1.2, 1] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-0 left-0 w-[300px] h-[300px] sm:w-[800px] sm:h-[800px] rounded-full bg-blue-300/20 blur-[80px] sm:blur-[150px] -z-10"
+          animate={{ x: ['-20%', '20%', '-20%'], y: ['-20%', '10%', '-20%'], scale: [1, 1.05, 1] }}
+          transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-0 left-0 w-[300px] h-[300px] sm:w-[800px] sm:h-[800px] rounded-full blur-[80px] sm:blur-[150px] -z-10"
+          style={{ backgroundColor: 'rgba(74,144,226,0.06)' }}
         />
         <motion.div
-          animate={{ x: ['20%', '-20%', '20%'], y: ['20%', '-10%', '20%'], scale: [1, 1.3, 1] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-0 right-0 w-[250px] h-[250px] sm:w-[700px] sm:h-[700px] rounded-full bg-purple-400/30 blur-[80px] sm:blur-[150px] -z-10"
+          animate={{ x: ['20%', '-20%', '20%'], y: ['20%', '-10%', '20%'], scale: [1, 1.08, 1] }}
+          transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-0 right-0 w-[250px] h-[250px] sm:w-[700px] sm:h-[700px] rounded-full blur-[80px] sm:blur-[150px] -z-10"
+          style={{ backgroundColor: 'rgba(124,58,237,0.04)' }}
         />
         <motion.div
-          animate={{ x: ['-10%', '10%', '-10%'], y: ['-10%', '20%', '-10%'], scale: [1, 1.2, 1] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute top-0 right-10 w-[200px] h-[200px] sm:w-[500px] sm:h-[500px] rounded-full bg-purple-500/10 blur-[100px] -z-10"
+          animate={{ x: ['-10%', '10%', '-10%'], y: ['-10%', '20%', '-10%'], scale: [1, 1.05, 1] }}
+          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute top-0 right-10 w-[200px] h-[200px] sm:w-[500px] sm:h-[500px] rounded-full blur-[100px] -z-10"
+          style={{ backgroundColor: 'rgba(124,58,237,0.03)' }}
         />
         <motion.div
-          animate={{ x: ['10%', '-30%', '10%'], y: ['-10%', '30%', '-10%'], scale: [1.2, 1, 1.2] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/3 left-0 sm:left-1/4 w-[200px] h-[200px] sm:w-[500px] sm:h-[500px] rounded-full bg-teal-300/20 blur-[70px] sm:blur-[120px] -z-10"
+          animate={{ x: ['10%', '-30%', '10%'], y: ['-10%', '30%', '-10%'], scale: [1.05, 1, 1.05] }}
+          transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/3 left-0 sm:left-1/4 w-[200px] h-[200px] sm:w-[500px] sm:h-[500px] rounded-full blur-[70px] sm:blur-[120px] -z-10"
+          style={{ backgroundColor: 'rgba(6,182,212,0.04)' }}
         />
       </div>
 
-      {/* --- Robot Background Mascots (Semi-transparent) --- */}
-      <motion.div
-        animate={{ y: [0, -30, 0], opacity: [0.05, 0.1, 0.05] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[10%] right-[30%] w-40 h-40 pointer-events-none -z-10 grayscale"
-      >
-        <img src="/assets/robots/wave.png" alt="" className="w-full h-full object-contain" />
-      </motion.div>
-
-      <motion.div
-        animate={{ y: [0, 40, 0], x: [0, 20, 0], opacity: [0.03, 0.08, 0.03] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute bottom-[10%] left-[15%] w-48 h-48 pointer-events-none -z-10 grayscale"
-      >
-        <img src="/assets/robots/laptop.png" alt="" className="w-full h-full object-contain" />
-      </motion.div>
-
-      <motion.div
-        animate={{ rotate: [0, 10, 0], opacity: [0.04, 0.06, 0.04] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 5 }}
-        className="absolute top-[50%] left-[5%] w-32 h-32 pointer-events-none -z-10 grayscale"
-      >
-        <img src="/assets/robots/clock.png" alt="" className="w-full h-full object-contain" />
-      </motion.div>
+      
 
       {/* --- Digital Industry Floating Elements --- */}
       <FloatingIndustryElement 
@@ -352,23 +349,7 @@ function App() {
                 </svg>
               </motion.div>
 
-              {/* Waving Robot mascot (Shifted further right to avoid text overlap) */}
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-[-100px] right-[-100px] sm:top-[-160px] sm:right-[-280px] w-32 h-32 sm:w-72 sm:h-72 z-0 pointer-events-none"
-              >
-                <div className="relative w-full h-full p-4">
-                  {/* Glass bubble with even better clarity and deeper z-index */}
-                  <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-full shadow-[0_0_40px_rgba(74,144,226,0.15)] border border-white/5"></div>
-                  <img 
-                    src="/assets/robots/wave.png" 
-                    alt="Waving Robot" 
-                    className="relative z-10 w-full h-full object-contain mix-blend-multiply transition-all duration-700 opacity-80" 
-                    style={{ WebkitMaskImage: 'radial-gradient(circle, black 65%, transparent 75%)', maskImage: 'radial-gradient(circle, black 65%, transparent 75%)' }}
-                  />
-                </div>
-              </motion.div>
+              
 
               <motion.div animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-2 right-4 sm:-top-6 sm:right-10 text-primary-blue pointer-events-none w-4 h-4 sm:w-6 sm:h-6 opacity-60 sm:opacity-100">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="currentColor"/></svg>
@@ -377,82 +358,81 @@ function App() {
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="currentColor"/></svg>
               </motion.div>
 
-              <div className="text-center mb-8 sm:mb-10 px-2 relative z-10">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-dark-slate mb-3 sm:mb-4 leading-tight">
-                  Track your project.
+              {/* Hero card with embedded search (desktop) */}
+              <div className="hero-card max-w-xl mx-auto mt-6 sm:mt-10 relative z-10">
+                {/* Animated Robot Mascot */}
+                <motion.div
+                  initial={{ y: 0, scale: 1 }}
+                  animate={{ y: [0, -18, 0], scale: [1, 1.04, 1] }}
+                  transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+                  className="flex justify-center mb-2"
+                  style={{ zIndex: 10 }}
+                >
+                  <img
+                    src="/robot-mascot2.png"
+                    alt="Robot Mascot"
+                    style={{ width: 96, height: 96, objectFit: 'contain', filter: 'drop-shadow(0 4px 16px rgba(74,144,226,0.10))' }}
+                  />
+                </motion.div>
+                <h1 className="hero-title hero-title-large">
+                  Track your <span className="gradient-text">project</span>.
                 </h1>
-                <p className="text-gray-500 text-sm sm:text-base md:text-lg leading-relaxed max-w-md mx-auto">
-                  Enter your unique Project ID below to view real-time progress and milestones.
-                </p>
+                <p className="hero-sub mt-3">Elevate your workflow. Measure every milestone live with Sisenco Digital.</p>
+
+                <div className="search-wrapper">
+                  {/* Desktop search pill */}
+                  <form onSubmit={handleIdSubmit} className="hidden sm:block">
+                    <div className={`search-pill ${projectId ? 'input-has-value' : ''}`}>
+                      <div className="search-icon">
+                          <Search size={18} />
+                        </div>
+                      <TypingHint hint="Type your Project ID" inputRef={projectInputRef} />
+                      <input
+                        type="text"
+                        value={projectId}
+                        onChange={(e) => setProjectId(e.target.value)}
+                        className="search-input"
+                        ref={projectInputRef}
+                        aria-label="Project ID"
+                      />
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="search-arrow"
+                        aria-label="Continue"
+                      >
+                        {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <ArrowRight size={18} />}
+                      </button>
+                    </div>
+                    {error && (
+                      <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-center mt-4 font-medium text-sm">{error}</motion.p>
+                    )}
+                  </form>
+
+                  {/* Mobile fallback: stacked input transformed into a pill with circular arrow CTA */}
+                  <form onSubmit={handleIdSubmit} className="sm:hidden mt-4">
+                    <div className={`mobile-stack search-pill relative ${projectId ? 'input-has-value' : ''}`}>
+                      <div className="search-icon">
+                        <Search size={18} />
+                      </div>
+                      <TypingHint hint="Type your Project ID" inputRef={projectInputRef} />
+                      <input
+                        type="text"
+                        value={projectId}
+                        onChange={(e) => setProjectId(e.target.value)}
+                        className="search-input"
+                        ref={projectInputRef}
+                        aria-label="Project ID"
+                      />
+                      <button type="submit" disabled={loading} className="search-arrow" aria-label="Continue">
+                        {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <ArrowRight size={18} />}
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
 
-              {/* Desktop form */}
-              <form onSubmit={handleIdSubmit} className="hidden sm:block relative">
-                <div className="relative flex items-center">
-                  <div className="absolute left-6 text-gray-400">
-                    <Search size={22} />
-                  </div>
-                  <input
-                    type="text"
-                    value={projectId}
-                    onChange={(e) => setProjectId(e.target.value)}
-                    placeholder="e.g. SDPR0000"
-                    className="w-full pl-14 pr-36 py-5 text-base bg-white border-2 border-gray-100 rounded-full shadow-2xl shadow-gray-200/50 outline-none focus:border-primary-blue focus:ring-4 focus:ring-primary-blue/10 transition-all font-medium text-dark-slate placeholder-gray-400"
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="absolute right-3 top-2.5 bottom-2.5 px-6 bg-primary-blue text-white font-bold rounded-full hover:bg-blue-600 active:scale-95 transition-all shadow-lg shadow-primary-blue/30 flex items-center justify-center disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed text-sm"
-                  >
-                    {loading ? <Loader2 className="animate-spin w-4 h-4 mx-1" /> : 'Continue'}
-                  </button>
-                </div>
-                {error && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-red-500 text-center mt-4 font-medium text-sm"
-                  >
-                    {error}
-                  </motion.p>
-                )}
-              </form>
-
-              {/* Mobile form */}
-              <form onSubmit={handleIdSubmit} className="sm:hidden flex flex-col gap-3 px-1">
-                <div className="relative flex items-center">
-                  <div className="absolute left-4 text-gray-400">
-                    <Search size={18} />
-                  </div>
-                  <input
-                    type="text"
-                    value={projectId}
-                    onChange={(e) => setProjectId(e.target.value)}
-                    placeholder="e.g. SDPR1001"
-                    className="w-full pl-11 pr-4 py-4 text-base bg-white border-2 border-gray-100 rounded-2xl shadow-xl shadow-gray-200/50 outline-none focus:border-primary-blue focus:ring-4 focus:ring-primary-blue/10 transition-all font-medium text-dark-slate placeholder-gray-400"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-4 bg-primary-blue text-white font-bold rounded-2xl hover:bg-blue-600 active:scale-[0.98] transition-all shadow-lg shadow-primary-blue/30 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-base"
-                >
-                  {loading ? (
-                    <><Loader2 className="animate-spin w-5 h-5" /> Searching...</>
-                  ) : (
-                    <><Compass className="w-5 h-5" /> Continue</>
-                  )}
-                </button>
-                {error && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-red-500 text-center font-medium text-sm"
-                  >
-                    {error}
-                  </motion.p>
-                )}
-              </form>
+              
 
               {/* Decorative Features / Stats for the bottom area */}
               <motion.div
@@ -499,101 +479,72 @@ function App() {
               transition={{ duration: 0.35 }}
               className="w-full max-w-md mx-auto mt-10 sm:mt-20"
             >
-              <div className="bg-white rounded-3xl shadow-2xl shadow-gray-200/60 border border-gray-100 p-8 sm:p-10">
-                <div className="flex justify-center mb-6 relative">
-                  <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-inner relative z-10">
-                    <Lock className="w-7 h-7 text-primary-blue" strokeWidth={1.8} />
+              <div className="hero-card rounded-3xl p-8 sm:p-10">
+                  <div className="flex justify-center mb-6 relative">
+                    <div className="w-16 h-16 rounded-2xl bg-white/6 border border-white/6 flex items-center justify-center shadow-inner relative z-10">
+                      <Lock className="w-7 h-7 text-white" strokeWidth={1.6} />
+                    </div>
                   </div>
-                  {/* Floating Robot gatekeeper in a bubble */}
-                  <motion.div
-                    animate={{ y: [0, -5, 0], x: [0, 5, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-20 -right-16 w-36 h-36 pointer-events-none hidden sm:block"
-                  >
-                    <div className="relative w-full h-full">
-                      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-full shadow-xl border border-white/40"></div>
-                      <img 
-                        src="/assets/robots/clipboard.png" 
-                        alt="Robot security" 
-                        className="relative z-10 w-full h-full object-contain mix-blend-multiply p-2" 
-                        style={{ WebkitMaskImage: 'radial-gradient(circle, black 65%, transparent 75%)', maskImage: 'radial-gradient(circle, black 65%, transparent 75%)' }}
+
+                  <div className="text-center mb-7">
+                    <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">Enter Password</h2>
+                    <div className="bg-white/6 rounded-2xl p-4 mb-4 border border-white/8">
+                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:'rgba(210,220,235,0.6)'}}>Accessing Project</p>
+                      <p className="text-white text-base sm:text-lg font-bold leading-tight mb-2">{projectPreview?.title}</p>
+                      <div className="flex items-center justify-center gap-1.5 text-white bg-white/3 py-1.5 px-3 rounded-full w-fit mx-auto border border-white/6">
+                        <User size={14} strokeWidth={2.5} />
+                        <span className="text-xs font-bold uppercase tracking-wide">{projectPreview?.clientName}</span>
+                      </div>
+                    </div>
+                    <p className="text-white text-sm font-medium leading-relaxed">
+                      Access to project <span className="font-bold">{projectId}</span> is protected.
+                      <br />Please enter your password to continue.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                    <div className={`search-pill ${password ? 'input-has-value' : ''}`}>
+                    <div className="search-icon">
+                      <Lock size={16} />
+                    </div>
+                    <TypingHint hint="Enter your password" inputRef={passwordInputRef} />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        autoFocus
+                        className="search-input"
+                        aria-label="Password"
+                        placeholder="Enter your password"
+                        ref={passwordInputRef}
                       />
-                    </div>
-                  </motion.div>
-                </div>
 
-                <div className="text-center mb-7">
-                  <h2 className="text-2xl sm:text-3xl font-black text-dark-slate mb-2">Enter Password</h2>
-                  <div className="bg-gray-50/80 rounded-2xl p-4 mb-4 border border-gray-100/50">
-                    <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Accessing Project</p>
-                    <p className="text-dark-slate text-base sm:text-lg font-bold leading-tight mb-2">{projectPreview?.title}</p>
-                    <div className="flex items-center justify-center gap-1.5 text-primary-blue bg-blue-50/50 py-1.5 px-3 rounded-full w-fit mx-auto border border-blue-100/50">
-                      <User size={14} strokeWidth={2.5} />
-                      <span className="text-xs font-bold uppercase tracking-wide">{projectPreview?.clientName}</span>
-                    </div>
-                  </div>
-                  <p className="text-gray-400 text-xs font-medium leading-relaxed">
-                    Access to project <span className="font-bold text-gray-600">{projectId}</span> is protected.
-                    <br />Please enter your password to continue.
-                  </p>
-                </div>
-
-                <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter password"
-                      autoFocus
-                      className="w-full pl-5 pr-12 py-4 text-base bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-primary-blue focus:ring-4 focus:ring-primary-blue/10 focus:bg-white transition-all font-medium text-dark-slate placeholder-gray-400"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                      tabIndex={-1}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-
-                  <AnimatePresence>
-                    {error && (
-                      <motion.p
-                        key="pw-error"
-                        initial={{ opacity: 0, y: -6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="text-red-500 text-sm font-medium text-center"
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(v => !v)}
+                        className="pill-eye"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
                       >
-                        {error}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-4 bg-primary-blue text-white font-bold rounded-2xl hover:bg-blue-600 active:scale-[0.98] transition-all shadow-lg shadow-primary-blue/30 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-base mt-2"
-                  >
-                    {loading ? (
-                      <><Loader2 className="animate-spin w-5 h-5" /> Verifying...</>
-                    ) : (
-                      <><ShieldCheck className="w-5 h-5" /> Access Timeline</>
-                    )}
+                      <button type="submit" disabled={loading} className="search-arrow" aria-label="Continue">
+                        {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <ArrowRight size={18} />}
+                      </button>
+                    </div>
+
+                    <AnimatePresence>
+                      {error && (
+                        <motion.p key="pw-error" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-red-500 text-sm font-medium text-center">{error}</motion.p>
+                      )}
+                    </AnimatePresence>
+
+                  </form>
+
+                  <button type="button" onClick={handleBackToId} className="mt-5 w-full flex items-center justify-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors font-medium">
+                    <ArrowLeft size={15} />
+                    Change Project ID
                   </button>
-                </form>
-
-                <button
-                  type="button"
-                  onClick={handleBackToId}
-                  className="mt-5 w-full flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors font-medium"
-                >
-                  <ArrowLeft size={15} />
-                  Change Project ID
-                </button>
               </div>
             </motion.div>
           )}
